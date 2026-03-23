@@ -1,0 +1,180 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ─── Users & Children ───────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  children  Child[]
+}
+
+model Child {
+  id          String   @id @default(cuid())
+  name        String
+  grade       Int      // 2 or 3
+  avatarType  String   @default("owl") // owl, robot, cat
+  avatarColor String   @default("#6366f1")
+  level       Int      @default(1)
+  xp          Int      @default(0)
+  coins       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  answers      Answer[]
+  achievements ChildAchievement[]
+  sessions     GameSession[]
+  simulations  SimulationResult[]
+  streaks      Streak[]
+
+  @@index([userId])
+}
+
+// ─── Questions ──────────────────────────────────────
+
+enum Category {
+  word_relations
+  sentence_completion
+  numbers_in_shapes
+  math_problems
+  shapes
+  vocabulary
+}
+
+model Question {
+  id          String   @id @default(cuid())
+  externalId  String   @unique // e.g. "word_relations_Word_Relations_1_q1"
+  category    Category
+  difficulty  Int      @default(3) // 1-5
+  grade       Int      @default(0) // 0=both, 2=grade2, 3=grade3
+
+  // Content
+  questionText  String   // The main question/sentence/problem text
+  questionImage String?  // Path to image if visual question
+  options       Json     // [{id: "א", text: "...", image?: "..."}]
+  correctAnswer String   // "א","ב","ג","ד"
+  explanation   String?  // Explanation text
+  tags          String   @default("[]") // JSON array of tag strings
+  source        String   // Original PDF filename
+
+  // Visual data for SVG-based questions
+  visualData    Json?
+
+  // Metadata
+  timeLimitSec Int      @default(90)
+  needsImage   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  answers Answer[]
+
+  @@index([category, difficulty])
+  @@index([category, grade])
+}
+
+// ─── Answers & Sessions ─────────────────────────────
+
+model Answer {
+  id           String   @id @default(cuid())
+  selected     String   // The option chosen
+  isCorrect    Boolean
+  timeSpentMs  Int      // Milliseconds to answer
+  hintsUsed    Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  childId    String
+  child      Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  sessionId  String?
+  session    GameSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([childId, questionId])
+  @@index([sessionId])
+}
+
+model GameSession {
+  id        String   @id @default(cuid())
+  category  Category
+  mode      String   // "practice", "challenge", "race"
+  score     Int      @default(0)
+  total     Int      @default(0)
+  stars     Int      @default(0) // 0-3
+  xpEarned  Int      @default(0)
+  coinsEarned Int    @default(0)
+  startedAt DateTime @default(now())
+  endedAt   DateTime?
+
+  childId String
+  child   Child  @relation(fields: [childId], references: [id], onDelete: Cascade)
+  answers Answer[]
+
+  @@index([childId, category])
+}
+
+// ─── Simulation (Full Test) ─────────────────────────
+
+model SimulationResult {
+  id              String   @id @default(cuid())
+  level           String   // "basic", "intermediate", "advanced"
+  totalScore      Int
+  totalQuestions  Int
+  durationSec     Int
+  categoryScores  Json     // { word_relations: {score, total}, ... }
+  recommendations Json?    // AI-generated improvement tips
+  createdAt       DateTime @default(now())
+
+  childId String
+  child   Child  @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@index([childId])
+}
+
+// ─── Gamification ───────────────────────────────────
+
+model Achievement {
+  id          String @id @default(cuid())
+  key         String @unique // "word_king", "math_genius", etc.
+  name        String // "מלך המילים"
+  description String
+  icon        String // emoji or icon name
+  criteria    Json   // { type: "streak", value: 7 } or { type: "score", category: "math", value: 100 }
+
+  children ChildAchievement[]
+}
+
+model ChildAchievement {
+  id         String   @id @default(cuid())
+  unlockedAt DateTime @default(now())
+
+  childId       String
+  child         Child       @relation(fields: [childId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([childId, achievementId])
+}
+
+model Streak {
+  id          String   @id @default(cuid())
+  date        DateTime
+  practiced   Boolean  @default(true)
+
+  childId String
+  child   Child  @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@unique([childId, date])
+  @@index([childId])
+}

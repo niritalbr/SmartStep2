@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Build outputs
+dist/
+build/
+
+# Database
+*.db
+*.db-journal
+
+# Python virtual environment
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# PDFs (large files, not needed in repo)
+PDFs/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Data/scripts (local extraction tools)
+data/
+scripts/

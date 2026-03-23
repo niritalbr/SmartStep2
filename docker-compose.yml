@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: gifted_app
+      POSTGRES_PASSWORD: gifted_dev_2026
+      POSTGRES_DB: gifted_games
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gifted_app -d gifted_games"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  server:
+    build: ./server
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgresql://gifted_app:gifted_dev_2026@db:5432/gifted_games
+      JWT_SECRET: dev-jwt-secret-change-in-production
+      PORT: 3001
+      NODE_ENV: development
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./server/src:/app/src
+      - ./data:/app/data
+
+  client:
+    build: ./client
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:3001/api
+    depends_on:
+      - server
+    volumes:
+      - ./client/src:/app/src
+
+volumes:
+  pgdata:
