@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import { authRouter } from "./routes/auth.js";
 import { questionsRouter } from "./routes/questions.js";
 import { answersRouter } from "./routes/answers.js";
@@ -7,6 +9,9 @@ import { childRouter } from "./routes/child.js";
 import { sessionsRouter } from "./routes/sessions.js";
 import { statsRouter } from "./routes/stats.js";
 import { generateRouter } from "./routes/generate.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -31,9 +36,13 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// Root redirect
-app.get("/", (_req, res) => {
-  res.json({ status: "ok", message: "MyNoam API server", docs: "/api/health" });
+// Serve frontend static files in production
+const clientDist = path.join(__dirname, "../../client/dist");
+app.use(express.static(clientDist));
+
+// SPA fallback: any non-API route serves index.html
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(clientDist, "index.html"));
 });
 
 app.listen(PORT, () => {
