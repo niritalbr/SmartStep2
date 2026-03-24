@@ -540,7 +540,7 @@ export default function SynonymInvadersGame() {
           />
         ))}
 
-        {/* Falling words */}
+        {/* Falling words — asteroid style */}
         <AnimatePresence>
           {fallingWords.map(w => {
             if (w.state === "dead") return null;
@@ -552,32 +552,54 @@ export default function SynonymInvadersGame() {
             return (
               <motion.div
                 key={w.id}
-                className={`absolute px-2 py-1 rounded-lg text-xs sm:text-sm font-bold whitespace-nowrap pointer-events-none
-                  ${isExploding
-                    ? "bg-orange-400/90 text-white"
-                    : isPassedGood
-                      ? "bg-emerald-400/90 text-white ring-2 ring-emerald-300"
-                      : isPassedBad
-                        ? "bg-red-600/90 text-white ring-2 ring-red-400"
-                        : "bg-sky-500/85 text-white border border-sky-300"
-                  }`}
+                className="absolute pointer-events-none"
                 style={{
                   left: `${w.x}%`,
                   top: `${w.y}%`,
                   transform: "translate(-50%, -50%)",
                 }}
-                initial={{ opacity: 0, scale: 0.5 }}
+                initial={{ opacity: 0, scale: 0.5, rotate: -10 }}
                 animate={{
                   opacity: isLeaving ? 0 : 1,
-                  scale: isExploding ? 1.6 : isPassedGood ? 1.4 : isPassedBad ? 1.3 : 1,
+                  scale: isExploding ? 1.8 : isPassedGood ? 1.4 : isPassedBad ? 1.3 : 1,
                   y: isPassedGood ? -20 : isPassedBad ? 10 : 0,
+                  rotate: isExploding ? 45 : 0,
                 }}
                 exit={{ opacity: 0, scale: 0 }}
-                transition={{ duration: isLeaving ? 0.5 : 0.12 }}
+                transition={{ duration: isLeaving ? 0.5 : 0.15 }}
               >
-                {isPassedGood && <span className="mr-1">✅</span>}
-                {isPassedBad && <span className="mr-1">💥</span>}
-                {w.text}
+                <div className={`relative flex items-center justify-center
+                  ${isExploding
+                    ? ""
+                    : isPassedGood
+                      ? ""
+                      : isPassedBad
+                        ? ""
+                        : ""
+                  }`}
+                >
+                  {/* Asteroid SVG shape */}
+                  <svg viewBox="0 0 120 100" className="w-20 h-16 sm:w-24 sm:h-20 drop-shadow-lg" style={{ filter: isExploding ? "brightness(1.8) saturate(2)" : isPassedGood ? "hue-rotate(90deg) brightness(1.4)" : isPassedBad ? "hue-rotate(-30deg) brightness(1.3) saturate(1.5)" : "" }}>
+                    <path
+                      d="M60 5 L85 10 L105 25 L115 50 L108 75 L90 90 L65 95 L35 92 L12 78 L5 55 L10 30 L30 12 Z"
+                      fill={isExploding ? "#f97316" : isPassedGood ? "#34d399" : isPassedBad ? "#ef4444" : "#78716c"}
+                      stroke={isExploding ? "#fdba74" : isPassedGood ? "#6ee7b7" : isPassedBad ? "#fca5a5" : "#a8a29e"}
+                      strokeWidth="2.5"
+                    />
+                    {/* Crater details */}
+                    <ellipse cx="40" cy="35" rx="8" ry="6" fill="rgba(0,0,0,0.15)" />
+                    <ellipse cx="75" cy="55" rx="10" ry="7" fill="rgba(0,0,0,0.12)" />
+                    <ellipse cx="55" cy="72" rx="6" ry="5" fill="rgba(0,0,0,0.1)" />
+                  </svg>
+                  {/* Word text centered on asteroid */}
+                  <span className={`absolute text-[11px] sm:text-sm font-bold whitespace-nowrap drop-shadow-md
+                    ${isExploding ? "text-white" : isPassedGood ? "text-white" : isPassedBad ? "text-white" : "text-white"}`}
+                  >
+                    {isPassedGood && "✅ "}
+                    {isPassedBad && "💥 "}
+                    {w.text}
+                  </span>
+                </div>
               </motion.div>
             );
           })}
@@ -596,19 +618,55 @@ export default function SynonymInvadersGame() {
           />
         ))}
 
-        {/* Ship (the word) */}
+        {/* Ship — spaceship SVG with word inside */}
         <div
-          className="absolute bottom-[4%]"
+          className="absolute bottom-[2%]"
           style={{
             left: `${shipX}%`,
             transform: "translateX(-50%)",
             transition: "left 0.06s linear",
           }}
         >
-          {/* Ship body */}
-          <div className="relative flex flex-col items-center">
-            <div className="text-2xl sm:text-3xl mb-0.5">🚀</div>
-            <div className="bg-indigo-600 text-white px-3 py-1 rounded-lg text-sm sm:text-base font-bold shadow-[0_0_12px_rgba(99,102,241,0.6)] border border-indigo-400 whitespace-nowrap">
+          <div className="relative flex flex-col items-center" style={{ filter: "drop-shadow(0 0 10px rgba(99,102,241,0.5))" }}>
+            {/* Spaceship SVG */}
+            <svg viewBox="0 0 140 180" className="w-20 h-28 sm:w-24 sm:h-32">
+              {/* Engine flames */}
+              <ellipse cx="55" cy="170" rx="8" ry="10" fill="#f97316" opacity="0.8">
+                <animate attributeName="ry" values="10;14;10" dur="0.3s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.8;0.5;0.8" dur="0.2s" repeatCount="indefinite" />
+              </ellipse>
+              <ellipse cx="85" cy="170" rx="8" ry="10" fill="#f97316" opacity="0.8">
+                <animate attributeName="ry" values="10;14;10" dur="0.3s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.8;0.5;0.8" dur="0.25s" repeatCount="indefinite" />
+              </ellipse>
+              <ellipse cx="55" cy="168" rx="4" ry="7" fill="#fde047">
+                <animate attributeName="ry" values="7;10;7" dur="0.25s" repeatCount="indefinite" />
+              </ellipse>
+              <ellipse cx="85" cy="168" rx="4" ry="7" fill="#fde047">
+                <animate attributeName="ry" values="7;10;7" dur="0.25s" repeatCount="indefinite" />
+              </ellipse>
+
+              {/* Main body */}
+              <path d="M70 8 C70 8, 45 40, 40 70 L40 135 L55 155 L85 155 L100 135 L100 70 C95 40, 70 8, 70 8Z" fill="#4f46e5" stroke="#818cf8" strokeWidth="2" />
+
+              {/* Cockpit window */}
+              <ellipse cx="70" cy="45" rx="16" ry="18" fill="#7dd3fc" stroke="#4f46e5" strokeWidth="2" />
+              <ellipse cx="70" cy="42" rx="10" ry="10" fill="#bae6fd" opacity="0.5" />
+
+              {/* Side wings */}
+              <path d="M40 100 L15 140 L25 155 L45 145 Z" fill="#6366f1" stroke="#818cf8" strokeWidth="1.5" />
+              <path d="M100 100 L125 140 L115 155 L95 145 Z" fill="#6366f1" stroke="#818cf8" strokeWidth="1.5" />
+
+              {/* Body panel lines */}
+              <line x1="55" y1="70" x2="55" y2="140" stroke="#818cf8" strokeWidth="1" opacity="0.4" />
+              <line x1="85" y1="70" x2="85" y2="140" stroke="#818cf8" strokeWidth="1" opacity="0.4" />
+
+              {/* Engine pods */}
+              <rect x="47" y="145" width="16" height="15" rx="3" fill="#4338ca" stroke="#818cf8" strokeWidth="1" />
+              <rect x="77" y="145" width="16" height="15" rx="3" fill="#4338ca" stroke="#818cf8" strokeWidth="1" />
+            </svg>
+            {/* Word label below ship */}
+            <div className="-mt-3 bg-indigo-700/90 text-white px-4 py-1 rounded-full text-sm sm:text-base font-bold whitespace-nowrap border border-indigo-400/60 shadow-[0_0_14px_rgba(99,102,241,0.5)]">
               {shipWord}
             </div>
           </div>
