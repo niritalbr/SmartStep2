@@ -39,11 +39,11 @@ export default function CreateChildPage() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-lg">
-        <div className="text-center mb-8">
-          <div className="text-5xl mb-3">🌟</div>
-          <h1 className="text-2xl font-bold text-gray-800">יצירת פרופיל ילד</h1>
+    <div className="min-h-[70vh] sm:min-h-[80vh] flex items-center justify-center p-3 sm:p-4">
+      <div className="bg-white rounded-2xl shadow-xl p-5 sm:p-8 w-full max-w-lg">
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="text-4xl sm:text-5xl mb-3">🌟</div>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800">יצירת פרופיל ילד</h1>
           <p className="text-gray-500 mt-1">בואו נכיר את השחקן החדש!</p>
         </div>
 
@@ -88,19 +88,19 @@ export default function CreateChildPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">דמות</label>
-            <div className="flex gap-3 justify-center">
+            <div className="flex gap-2 sm:gap-3 justify-center">
               {AVATARS.map((a) => (
                 <button
                   key={a.type}
                   type="button"
                   onClick={() => setAvatarType(a.type)}
-                  className={`flex flex-col items-center p-4 rounded-xl transition-all ${
+                  className={`flex flex-col items-center p-3 sm:p-4 rounded-xl transition-all ${
                     avatarType === a.type
                       ? "bg-indigo-50 ring-2 ring-indigo-400 scale-110"
                       : "bg-gray-50 hover:bg-gray-100"
                   }`}
                 >
-                  <span className="text-4xl mb-1">{a.emoji}</span>
+                  <span className="text-3xl sm:text-4xl mb-1">{a.emoji}</span>
                   <span className="text-xs text-gray-600">{a.label}</span>
                 </button>
               ))}

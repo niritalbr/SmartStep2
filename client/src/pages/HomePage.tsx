@@ -26,50 +26,50 @@ export default function HomePage() {
   const xpProgress = ((activeChild?.xp || 0) % 100) / 100;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
+    <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
       {/* Player card */}
       <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="bg-white rounded-2xl shadow-lg p-6 mb-8"
+        className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-6 sm:mb-8"
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
             <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl"
+              className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl shrink-0"
               style={{ backgroundColor: activeChild?.avatarColor + "20" }}
             >
               {activeChild?.avatarType === "owl" ? "🦉" : activeChild?.avatarType === "robot" ? "🤖" : "🐱"}
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">
+            <div className="min-w-0">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-800 truncate">
                 שלום {activeChild?.name}! 👋
               </h2>
-              <p className="text-gray-500 text-sm">
+              <p className="text-gray-500 text-xs sm:text-sm">
                 כיתה {activeChild?.grade === 2 ? "ב'" : "ג'"} · רמה {activeChild?.level}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 sm:gap-6 shrink-0">
             <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-500">🪙 {activeChild?.coins}</div>
-              <div className="text-xs text-gray-400">מטבעות</div>
+              <div className="text-lg sm:text-2xl font-bold text-yellow-500">🪙 {activeChild?.coins}</div>
+              <div className="text-xs text-gray-400 hidden sm:block">מטבעות</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-500">✨ {activeChild?.xp}</div>
-              <div className="text-xs text-gray-400">ניסיון</div>
+              <div className="text-lg sm:text-2xl font-bold text-purple-500">✨ {activeChild?.xp}</div>
+              <div className="text-xs text-gray-400 hidden sm:block">ניסיון</div>
             </div>
           </div>
         </div>
 
         {/* XP bar */}
-        <div className="mt-4">
+        <div className="mt-3 sm:mt-4">
           <div className="flex justify-between text-xs text-gray-400 mb-1">
             <span>רמה {activeChild?.level}</span>
             <span>רמה {(activeChild?.level || 1) + 1}</span>
           </div>
-          <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-2.5 sm:h-3 bg-gray-100 rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-gradient-to-l from-indigo-500 to-purple-500 rounded-full"
               initial={{ width: 0 }}
@@ -84,12 +84,12 @@ export default function HomePage() {
       </motion.div>
 
       {/* Category title */}
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+      <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6 text-center">
         🗺️ בחרו משחק
       </h2>
 
       {/* Game islands grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
         {ISLANDS.map((island, i) => {
           const info = CATEGORY_INFO[island.category];
           const catSummary = summary[island.category];
@@ -102,18 +102,18 @@ export default function HomePage() {
               whileHover={{ scale: 1.05, y: -5 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate(`/game/${island.category}`)}
-              className="game-card group relative overflow-hidden rounded-2xl p-6 text-right transition-shadow hover:shadow-xl"
+              className="game-card group relative overflow-hidden rounded-2xl p-4 sm:p-6 text-right transition-shadow hover:shadow-xl"
               style={{
                 background: `linear-gradient(135deg, ${info.color}15, ${info.color}30)`,
                 borderColor: info.color + "40",
               }}
             >
               <div className="relative z-10">
-                <div className="text-5xl mb-3">{info.icon}</div>
-                <h3 className="text-xl font-bold text-gray-800 mb-1">{info.name}</h3>
-                <p className="text-sm text-gray-500 mb-3">{info.description}</p>
+                <div className="text-3xl sm:text-5xl mb-2 sm:mb-3">{info.icon}</div>
+                <h3 className="text-sm sm:text-xl font-bold text-gray-800 mb-0.5 sm:mb-1">{info.name}</h3>
+                <p className="text-xs sm:text-sm text-gray-500 mb-2 sm:mb-3 line-clamp-2">{info.description}</p>
                 {catSummary && (
-                  <div className="text-xs text-gray-400">
+                  <div className="text-xs text-gray-400 hidden sm:block">
                     {catSummary.total} שאלות זמינות
                   </div>
                 )}
@@ -121,11 +121,7 @@ export default function HomePage() {
 
               {/* Decorative circle */}
               <div
-                className="absolute -left-6 -bottom-6 w-24 h-24 rounded-full opacity-10 group-hover:opacity-20 transition-opacity"
-                style={{ backgroundColor: info.color }}
-              />
-              <div
-                className="absolute -left-2 -bottom-2 w-12 h-12 rounded-full opacity-5 group-hover:opacity-15 transition-opacity"
+                className="absolute -left-6 -bottom-6 w-16 sm:w-24 h-16 sm:h-24 rounded-full opacity-10 group-hover:opacity-20 transition-opacity"
                 style={{ backgroundColor: info.color }}
               />
             </motion.button>

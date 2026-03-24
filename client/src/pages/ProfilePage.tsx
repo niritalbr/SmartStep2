@@ -114,9 +114,9 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-gray-800">⚙️ הגדרות פרופיל</h1>
+    <div className="max-w-2xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+      <div className="flex items-center justify-between mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-800">⚙️ הגדרות פרופיל</h1>
         <button
           onClick={() => navigate(-1)}
           className="text-gray-500 hover:text-gray-700 text-sm"
@@ -126,8 +126,8 @@ export default function ProfilePage() {
       </div>
 
       {/* Parent Profile */}
-      <section className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-        <h2 className="text-lg font-bold text-gray-800 mb-4">👤 פרטי הורה</h2>
+      <section className="bg-white rounded-2xl shadow-sm p-4 sm:p-6 mb-6">
+        <h2 className="text-base sm:text-lg font-bold text-gray-800 mb-4">👤 פרטי הורה</h2>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">שם</label>
@@ -150,7 +150,7 @@ export default function ProfilePage() {
           </div>
           <div className="border-t pt-4">
             <p className="text-sm text-gray-500 mb-3">שינוי סיסמה (אופציונלי)</p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs text-gray-500 mb-1">סיסמה נוכחית</label>
                 <input
@@ -189,9 +189,9 @@ export default function ProfilePage() {
       </section>
 
       {/* Children Profiles */}
-      <section className="bg-white rounded-2xl shadow-sm p-6 mb-6">
+      <section className="bg-white rounded-2xl shadow-sm p-4 sm:p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-gray-800">👦 פרופילי ילדים</h2>
+          <h2 className="text-base sm:text-lg font-bold text-gray-800">👦 פרופילי ילדים</h2>
           <button
             onClick={() => navigate("/create-child")}
             className="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-medium hover:bg-indigo-100"
@@ -283,16 +283,16 @@ export default function ProfilePage() {
                 ) : (
                   /* View Mode */
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                       <span
-                        className="text-3xl w-12 h-12 rounded-full flex items-center justify-center"
+                        className="text-2xl sm:text-3xl w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0"
                         style={{ backgroundColor: child.avatarColor + "20" }}
                       >
                         {child.avatarType === "owl" ? "🦉" : child.avatarType === "robot" ? "🤖" : "🐱"}
                       </span>
-                      <div>
-                        <h3 className="font-bold text-gray-800">{child.name}</h3>
-                        <p className="text-xs text-gray-500">
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-gray-800 truncate">{child.name}</h3>
+                        <p className="text-xs text-gray-500 truncate">
                           כיתה {child.grade === 2 ? "ב'" : "ג'"} · רמה {child.level} · {child.xp} XP · {child.coins} 🪙
                         </p>
                       </div>

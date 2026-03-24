@@ -131,10 +131,12 @@ function CellSvg({
   cell,
   size = 80,
   border = true,
+  className = "",
 }: {
   cell: VisualCell | null;
   size?: number;
   border?: boolean;
+  className?: string;
 }) {
   if (!cell) {
     return (
@@ -142,7 +144,7 @@ function CellSvg({
         width={size}
         height={size}
         viewBox="0 0 100 100"
-        className="shrink-0"
+        className={`shrink-0 max-w-full h-auto ${className}`}
       >
         {border && (
           <rect
@@ -176,7 +178,7 @@ function CellSvg({
       width={size}
       height={size}
       viewBox="0 0 100 100"
-      className="shrink-0"
+      className={`shrink-0 max-w-full h-auto ${className}`}
     >
       {border && (
         <rect
@@ -201,10 +203,10 @@ function CellSvg({
 
 function MatrixLayout({ cells }: { cells: (VisualCell | null)[] }) {
   return (
-    <div className="flex justify-center mb-6">
-      <div className="inline-grid grid-cols-3 gap-1 p-3 bg-gray-50 rounded-xl border-2 border-gray-200 shadow-inner">
+    <div className="flex justify-center mb-4 sm:mb-6">
+      <div className="inline-grid grid-cols-3 gap-0.5 sm:gap-1 p-2 sm:p-3 bg-gray-50 rounded-xl border-2 border-gray-200 shadow-inner">
         {cells.map((c, i) => (
-          <CellSvg key={i} cell={c} size={88} />
+          <CellSvg key={i} cell={c} size={88} className="w-16 h-16 sm:w-[88px] sm:h-[88px]" />
         ))}
       </div>
     </div>
@@ -213,11 +215,11 @@ function MatrixLayout({ cells }: { cells: (VisualCell | null)[] }) {
 
 function SequenceLayout({ cells }: { cells: (VisualCell | null)[] }) {
   return (
-    <div className="flex justify-center mb-6 overflow-x-auto pb-2">
-      <div className="flex items-center gap-0.5 p-3 bg-gray-50 rounded-xl border-2 border-gray-200 shadow-inner">
+    <div className="flex justify-center mb-4 sm:mb-6 overflow-x-auto pb-2">
+      <div className="flex items-center gap-0.5 p-2 sm:p-3 bg-gray-50 rounded-xl border-2 border-gray-200 shadow-inner">
         {cells.map((c, i) => (
           <div key={i} className="flex items-center shrink-0">
-            <CellSvg cell={c} size={64} />
+            <CellSvg cell={c} size={64} className="w-11 h-11 sm:w-16 sm:h-16" />
             {i < cells.length - 1 && (
               <span className="text-gray-300 text-sm mx-0.5 select-none">
                 ▸
@@ -232,21 +234,21 @@ function SequenceLayout({ cells }: { cells: (VisualCell | null)[] }) {
 
 function AnalogyLayout({ cells }: { cells: (VisualCell | null)[] }) {
   return (
-    <div className="flex justify-center mb-6 overflow-x-auto pb-2">
-      <div className="flex items-center gap-1.5 p-3 bg-gray-50 rounded-xl border-2 border-gray-200 shadow-inner">
-        <CellSvg cell={cells[0]} size={76} />
-        <span className="text-gray-400 text-xl font-bold select-none">
+    <div className="flex justify-center mb-4 sm:mb-6 overflow-x-auto pb-2">
+      <div className="flex items-center gap-1 sm:gap-1.5 p-2 sm:p-3 bg-gray-50 rounded-xl border-2 border-gray-200 shadow-inner">
+        <CellSvg cell={cells[0]} size={76} className="w-12 h-12 sm:w-[76px] sm:h-[76px]" />
+        <span className="text-gray-400 text-base sm:text-xl font-bold select-none">
           :
         </span>
-        <CellSvg cell={cells[1]} size={76} />
-        <span className="text-gray-300 text-2xl font-bold mx-1 select-none">
+        <CellSvg cell={cells[1]} size={76} className="w-12 h-12 sm:w-[76px] sm:h-[76px]" />
+        <span className="text-gray-300 text-lg sm:text-2xl font-bold mx-0.5 sm:mx-1 select-none">
           =
         </span>
-        <CellSvg cell={cells[2]} size={76} />
-        <span className="text-gray-400 text-xl font-bold select-none">
+        <CellSvg cell={cells[2]} size={76} className="w-12 h-12 sm:w-[76px] sm:h-[76px]" />
+        <span className="text-gray-400 text-base sm:text-xl font-bold select-none">
           :
         </span>
-        <CellSvg cell={cells[3]} size={76} />
+        <CellSvg cell={cells[3]} size={76} className="w-12 h-12 sm:w-[76px] sm:h-[76px]" />
       </div>
     </div>
   );
@@ -268,5 +270,5 @@ export function VisualQuestion({ data }: { data: VisualData }) {
 }
 
 export function VisualOption({ cell }: { cell: VisualCell }) {
-  return <CellSvg cell={cell} size={56} border={false} />;
+  return <CellSvg cell={cell} size={56} border={false} className="w-10 h-10 sm:w-14 sm:h-14" />;
 }

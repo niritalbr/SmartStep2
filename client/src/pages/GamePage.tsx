@@ -206,11 +206,11 @@ export default function GamePage() {
     const totalCoins = results.reduce((s, r) => s + r.coinGain, 0);
 
     return (
-      <div className="max-w-lg mx-auto px-4 py-12">
+      <div className="max-w-lg mx-auto px-3 sm:px-4 py-8 sm:py-12">
         <motion.div
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="bg-white rounded-2xl shadow-xl p-8 text-center"
+          className="bg-white rounded-2xl shadow-xl p-5 sm:p-8 text-center"
         >
           <div className="text-6xl mb-4">
             {stars === 3 ? "🏆" : stars === 2 ? "🌟" : stars === 1 ? "⭐" : "💪"}
@@ -236,13 +236,13 @@ export default function GamePage() {
             {correct} מתוך {total} תשובות נכונות ({pct}%)
           </div>
 
-          <div className="flex justify-center gap-8 mb-8">
+          <div className="flex justify-center gap-6 sm:gap-8 mb-6 sm:mb-8">
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-500">+{totalXp}</div>
+              <div className="text-xl sm:text-2xl font-bold text-purple-500">+{totalXp}</div>
               <div className="text-xs text-gray-400">XP</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-500">+{totalCoins}</div>
+              <div className="text-xl sm:text-2xl font-bold text-yellow-500">+{totalCoins}</div>
               <div className="text-xs text-gray-400">מטבעות</div>
             </div>
           </div>
@@ -285,9 +285,9 @@ export default function GamePage() {
   const timerPct = (timeLeft / (currentQuestion.timeLimitSec || 90)) * 100;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6">
+    <div className="max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
       {/* Progress bar */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
         <button
           onClick={() => navigate("/")}
           className="text-gray-400 hover:text-gray-600 text-lg"
@@ -333,12 +333,12 @@ export default function GamePage() {
           initial={{ x: 50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: -50, opacity: 0 }}
-          className="bg-white rounded-2xl shadow-lg p-8 mb-6"
+          className="bg-white rounded-2xl shadow-lg p-4 sm:p-8 mb-4 sm:mb-6"
         >
           {/* Question text / visual */}
           {currentQuestion.visualData ? (
             <>
-              <p className="text-xl font-medium text-gray-800 text-center mb-4" dir="rtl">
+              <p className="text-base sm:text-xl font-medium text-gray-800 text-center mb-3 sm:mb-4" dir="rtl">
                 {currentQuestion.questionText}
               </p>
               <VisualQuestion data={currentQuestion.visualData} />
@@ -348,7 +348,7 @@ export default function GamePage() {
           )}
 
           {/* Options */}
-          <div className={currentQuestion.visualData ? "grid grid-cols-2 gap-3" : "space-y-3"}>
+          <div className={currentQuestion.visualData ? "grid grid-cols-2 gap-2 sm:gap-3" : "space-y-2 sm:space-y-3"}>
             {options.map((opt, optIdx) => {
               let btnClass = "option-btn ";
               if (gameState === "feedback" && result) {
@@ -370,9 +370,9 @@ export default function GamePage() {
                   whileTap={gameState === "playing" ? { scale: 0.98 } : {}}
                   disabled={gameState !== "playing"}
                   onClick={() => handleSubmit(opt.id)}
-                  className={`w-full flex items-center gap-4 p-5 rounded-xl border-2 text-right transition-all ${btnClass}`}
+                  className={`w-full flex items-center gap-2 sm:gap-4 p-3 sm:p-5 rounded-xl border-2 text-right transition-all ${btnClass}`}
                 >
-                  <span className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-base font-bold shrink-0">
+                  <span className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm sm:text-base font-bold shrink-0">
                     {opt.id}
                   </span>
                   {currentQuestion.visualData?.optionVisuals?.[optIdx] ? (
@@ -380,7 +380,7 @@ export default function GamePage() {
                       <VisualOption cell={currentQuestion.visualData.optionVisuals[optIdx]} />
                     </span>
                   ) : (
-                    <span className="flex-1 text-lg">{opt.text}</span>
+                    <span className="flex-1 text-sm sm:text-lg">{opt.text}</span>
                   )}
                   {gameState === "feedback" && opt.id === result?.correctAnswer && (
                     <span className="text-green-500 text-xl">✓</span>
@@ -404,17 +404,17 @@ export default function GamePage() {
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 50, opacity: 0 }}
-            className={`rounded-2xl p-6 text-center ${
+            className={`rounded-2xl p-4 sm:p-6 text-center ${
               result.isCorrect
                 ? "bg-green-50 border-2 border-green-200"
                 : "bg-red-50 border-2 border-red-200"
             }`}
           >
-            <div className="text-4xl mb-2">
+            <div className="text-3xl sm:text-4xl mb-2">
               {result.isCorrect ? "🎉" : "😢"}
             </div>
             <h3
-              className={`text-xl font-bold mb-1 ${
+              className={`text-lg sm:text-xl font-bold mb-1 ${
                 result.isCorrect ? "text-green-700" : "text-red-700"
               }`}
             >

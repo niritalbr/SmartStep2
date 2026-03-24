@@ -26,11 +26,11 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="text-5xl mb-3">✨</div>
-          <h1 className="text-2xl font-bold text-gray-800">הרשמה</h1>
+    <div className="min-h-[70vh] sm:min-h-[80vh] flex items-center justify-center p-3 sm:p-4">
+      <div className="bg-white rounded-2xl shadow-xl p-5 sm:p-8 w-full max-w-md">
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="text-4xl sm:text-5xl mb-3">✨</div>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800">הרשמה</h1>
           <p className="text-gray-500 mt-1">צרו חשבון הורה כדי להתחיל</p>
         </div>
 
