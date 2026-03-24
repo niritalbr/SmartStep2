@@ -4,12 +4,61 @@ import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../api";
 
-/* ───── word pools ─────────────────────────────────── */
+/* ───── word pair data ─────────────────────────────── */
 
-const WORD_POOL = [
-  "חכם", "נבון", "אמיץ", "זריז", "חרוץ", "נדיב", "חסכן", "סקרן",
-  "יצירתי", "עקשן", "שמח", "גיבור", "חזק", "זהיר", "ממציא",
-  "מהיר", "עצום", "זעיר", "נאה", "עליז", "נחוש", "תשוש",
+type GameMode = "synonyms" | "antonyms";
+
+interface WordPair {
+  clue: string;   // shown in the word list
+  hidden: string; // placed in the grid
+}
+
+// Synonym pairs: clue → hidden (synonym of clue)
+const SYNONYM_PAIRS: WordPair[] = [
+  { clue: "שמח", hidden: "עליז" },
+  { clue: "גדול", hidden: "ענק" },
+  { clue: "חכם", hidden: "נבון" },
+  { clue: "יפה", hidden: "נאה" },
+  { clue: "מהיר", hidden: "זריז" },
+  { clue: "אמיץ", hidden: "נועז" },
+  { clue: "כעוס", hidden: "זועם" },
+  { clue: "חזק", hidden: "איתן" },
+  { clue: "עייף", hidden: "תשוש" },
+  { clue: "קשה", hidden: "סבוך" },
+  { clue: "חם", hidden: "לוהט" },
+  { clue: "קר", hidden: "צונן" },
+  { clue: "רגוע", hidden: "שלו" },
+  { clue: "עצוב", hidden: "נוגה" },
+  { clue: "קטן", hidden: "זעיר" },
+  { clue: "חשוב", hidden: "מרכזי" },
+  { clue: "פשוט", hidden: "קל" },
+  { clue: "מדויק", hidden: "נכון" },
+  { clue: "רחוק", hidden: "נידח" },
+  { clue: "ישן", hidden: "עתיק" },
+];
+
+// Antonym pairs: clue → hidden (opposite of clue)
+const ANTONYM_PAIRS: WordPair[] = [
+  { clue: "שמח", hidden: "עצוב" },
+  { clue: "גדול", hidden: "קטן" },
+  { clue: "חזק", hidden: "חלש" },
+  { clue: "מהיר", hidden: "איטי" },
+  { clue: "חם", hidden: "קר" },
+  { clue: "יפה", hidden: "מכוער" },
+  { clue: "קשה", hidden: "קל" },
+  { clue: "חכם", hidden: "טיפש" },
+  { clue: "אמיץ", hidden: "פחדן" },
+  { clue: "רגוע", hidden: "לחוץ" },
+  { clue: "ישן", hidden: "חדש" },
+  { clue: "רחוק", hidden: "קרוב" },
+  { clue: "גבוה", hidden: "נמוך" },
+  { clue: "עשיר", hidden: "עני" },
+  { clue: "בריא", hidden: "חולה" },
+  { clue: "מלא", hidden: "ריק" },
+  { clue: "ארוך", hidden: "קצר" },
+  { clue: "רחב", hidden: "צר" },
+  { clue: "בהיר", hidden: "כהה" },
+  { clue: "שקט", hidden: "רועש" },
 ];
 
 const HEB_LETTERS = "אבגדהוזחטיכלמנסעפצקרשת";
@@ -27,7 +76,8 @@ const DIRECTIONS: Dir[] = [
 /* ───── grid generation ────────────────────────────── */
 
 interface PlacedWord {
-  word: string;
+  clue: string;   // shown in the word list
+  hidden: string; // the word placed in the grid
   cells: [number, number][];
 }
 
@@ -40,14 +90,14 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-function generateGrid(words: string[]): { grid: string[][]; placed: PlacedWord[] } {
+function generateGrid(pairs: WordPair[]): { grid: string[][]; placed: PlacedWord[] } {
   const grid: string[][] = Array.from({ length: GRID_SIZE }, () =>
     Array(GRID_SIZE).fill("")
   );
   const placed: PlacedWord[] = [];
 
-  for (const word of shuffle(words)) {
-    const chars = word.split("");
+  for (const pair of shuffle(pairs)) {
+    const chars = pair.hidden.split("");
     const len = chars.length;
     if (len > GRID_SIZE) continue;
 
@@ -84,7 +134,7 @@ function generateGrid(words: string[]): { grid: string[][]; placed: PlacedWord[]
           for (let i = 0; i < len; i++) {
             grid[cells[i][0]][cells[i][1]] = chars[i];
           }
-          placed.push({ word, cells });
+          placed.push({ clue: pair.clue, hidden: pair.hidden, cells });
           success = true;
           break;
         }
@@ -112,6 +162,7 @@ export default function WordSearchGame() {
   const navigate = useNavigate();
   const { activeChild, updateActiveChild } = useAuth();
 
+  const [mode, setMode] = useState<GameMode>("synonyms");
   const [phase, setPhase] = useState<"intro" | "playing" | "done">("intro");
   const [grid, setGrid] = useState<string[][]>([]);
   const [placedWords, setPlacedWords] = useState<PlacedWord[]>([]);
@@ -126,8 +177,11 @@ export default function WordSearchGame() {
 
   const cellKey = (r: number, c: number) => `${r}-${c}`;
 
-  const startGame = () => {
-    const { grid: g, placed } = generateGrid(WORD_POOL);
+  const startGame = (selectedMode?: GameMode) => {
+    const m = selectedMode ?? mode;
+    setMode(m);
+    const pool = m === "synonyms" ? SYNONYM_PAIRS : ANTONYM_PAIRS;
+    const { grid: g, placed } = generateGrid(pool);
     setGrid(g);
     setPlacedWords(placed);
     setFoundWords(new Set());
@@ -164,10 +218,10 @@ export default function WordSearchGame() {
     const lettersReversed = [...letters].reverse().join("");
 
     for (const pw of placedWords) {
-      if (foundWords.has(pw.word)) continue;
-      if (pw.word === letters || pw.word === lettersReversed) {
+      if (foundWords.has(pw.hidden)) continue;
+      if (pw.hidden === letters || pw.hidden === lettersReversed) {
         const newFound = new Set(foundWords);
-        newFound.add(pw.word);
+        newFound.add(pw.hidden);
         setFoundWords(newFound);
 
         const newHighlight = new Set(highlightedCells);
@@ -254,18 +308,47 @@ export default function WordSearchGame() {
           className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 text-center"
         >
           <div className="text-5xl sm:text-7xl mb-4">🔍</div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">חיפוש מילים</h1>
-          <p className="text-gray-500 text-sm sm:text-base mb-2">
-            מצאו את המילים המוסתרות ברשת האותיות!
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">תפזורת מילים</h1>
+          <p className="text-gray-500 text-sm sm:text-base mb-4">
+            ברשימה מופיעות מילים. מצאו ברשת את ה<strong>{mode === "synonyms" ? "מילה הנרדפת" : "ההפך"}</strong> של כל מילה!
           </p>
+
+          {/* Mode toggle */}
+          <div className="flex justify-center gap-2 mb-5">
+            <button
+              onClick={() => setMode("synonyms")}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                mode === "synonyms"
+                  ? "bg-emerald-500 text-white shadow-md"
+                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              }`}
+            >
+              🤝 מילים נרדפות
+            </button>
+            <button
+              onClick={() => setMode("antonyms")}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                mode === "antonyms"
+                  ? "bg-orange-500 text-white shadow-md"
+                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              }`}
+            >
+              🔄 הפכים
+            </button>
+          </div>
+
           <div className="text-sm text-gray-400 mb-6 space-y-1">
             <p>📏 רשת {GRID_SIZE}×{GRID_SIZE}</p>
-            <p>📝 6 מילים מוסתרות</p>
+            <p>📝 6 {mode === "synonyms" ? "נרדפות" : "הפכים"} מוסתרים</p>
             <p>👆 גררו אצבע/עכבר על רצף אותיות</p>
           </div>
           <button
-            onClick={startGame}
-            className="px-8 py-3 bg-emerald-500 text-white text-lg rounded-2xl font-bold hover:bg-emerald-600 active:scale-95 transition-all shadow-lg"
+            onClick={() => startGame(mode)}
+            className={`px-8 py-3 text-white text-lg rounded-2xl font-bold active:scale-95 transition-all shadow-lg ${
+              mode === "synonyms"
+                ? "bg-emerald-500 hover:bg-emerald-600"
+                : "bg-orange-500 hover:bg-orange-600"
+            }`}
           >
             🔍 יאללה!
           </button>
@@ -284,7 +367,9 @@ export default function WordSearchGame() {
           className="bg-white rounded-2xl shadow-xl p-5 sm:p-8 text-center"
         >
           <div className="text-5xl sm:text-6xl mb-3">🎉</div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">מצאת הכל!</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
+            מצאת את כל ה{mode === "synonyms" ? "נרדפות" : "הפכים"}!
+          </h2>
           <div className="text-3xl mb-4">
             {[1, 2, 3].map(s => (
               <span key={s} className={s <= stars ? "opacity-100" : "opacity-20"}>⭐</span>
@@ -317,8 +402,12 @@ export default function WordSearchGame() {
 
           <div className="flex gap-3">
             <button
-              onClick={startGame}
-              className="flex-1 py-3 bg-emerald-500 text-white rounded-xl font-medium hover:bg-emerald-600"
+              onClick={() => startGame(mode)}
+              className={`flex-1 py-3 text-white rounded-xl font-medium ${
+                mode === "synonyms"
+                  ? "bg-emerald-500 hover:bg-emerald-600"
+                  : "bg-orange-500 hover:bg-orange-600"
+              }`}
             >
               🔄 שחק שוב
             </button>
@@ -347,25 +436,35 @@ export default function WordSearchGame() {
         <div className="text-sm font-bold text-gray-600">
           ⏱ {formatTime(timer)}
         </div>
-        <div className="text-sm font-bold text-emerald-600">
+        <div className={`text-sm font-bold ${mode === "synonyms" ? "text-emerald-600" : "text-orange-600"}`}>
           {foundWords.size}/{placedWords.length} 🎯
         </div>
       </div>
 
-      {/* Word list */}
+      {/* Hint: what to look for */}
+      <div className="text-center mb-2 text-xs text-gray-400">
+        {mode === "synonyms" ? "מצאו מילה נרדפת לכל מילה ברשימה" : "מצאו את ההפך של כל מילה ברשימה"}
+      </div>
+
+      {/* Word list — shows the clue words */}
       <div className="flex flex-wrap gap-2 justify-center mb-4">
-        {placedWords.map(pw => (
-          <span
-            key={pw.word}
-            className={`px-2.5 py-1 rounded-full text-xs sm:text-sm font-bold transition-all ${
-              foundWords.has(pw.word)
-                ? "bg-emerald-100 text-emerald-700 line-through"
-                : "bg-gray-100 text-gray-600"
-            }`}
-          >
-            {pw.word}
-          </span>
-        ))}
+        {placedWords.map(pw => {
+          const isFound = foundWords.has(pw.hidden);
+          return (
+            <span
+              key={pw.clue}
+              className={`px-2.5 py-1 rounded-full text-xs sm:text-sm font-bold transition-all ${
+                isFound
+                  ? mode === "synonyms"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-orange-100 text-orange-700"
+                  : "bg-gray-100 text-gray-600"
+              }`}
+            >
+              {isFound ? `${pw.clue} ← ${pw.hidden} ✓` : pw.clue}
+            </span>
+          );
+        })}
       </div>
 
       {/* Grid */}
@@ -400,7 +499,9 @@ export default function WordSearchGame() {
                 data-rc={`${r}-${c}`}
                 className={`aspect-square flex items-center justify-center rounded-lg text-base sm:text-xl font-bold cursor-pointer transition-colors
                   ${isHighlighted
-                    ? "bg-emerald-200 text-emerald-800"
+                    ? mode === "synonyms"
+                      ? "bg-emerald-200 text-emerald-800"
+                      : "bg-orange-200 text-orange-800"
                     : isSelected
                       ? "bg-indigo-200 text-indigo-800"
                       : "bg-gray-50 text-gray-700 hover:bg-gray-100"

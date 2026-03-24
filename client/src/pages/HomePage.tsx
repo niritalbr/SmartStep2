@@ -35,10 +35,10 @@ const GAMES = [
   },
   {
     id: "word-search",
-    name: "חיפוש מילים",
+    name: "תפזורת מילים",
     icon: "🔍",
     color: "#10b981",
-    description: "מצאו מילים מוסתרות ברשת אותיות — אוצר מילים עשיר",
+    description: "מצאו נרדפות או הפכים מוסתרים ברשת אותיות",
     route: "/games/word-search",
   },
   {
