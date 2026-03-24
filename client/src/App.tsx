@@ -9,6 +9,9 @@ import GamePage from "./pages/GamePage";
 import StatsPage from "./pages/StatsPage";
 import ParentDashboard from "./pages/ParentDashboard";
 import ProfilePage from "./pages/ProfilePage";
+import MemoryMatchGame from "./pages/games/MemoryMatchGame";
+import WhackAMoleGame from "./pages/games/WhackAMoleGame";
+import WordSearchGame from "./pages/games/WordSearchGame";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -61,6 +64,36 @@ export default function App() {
             <ProtectedRoute>
               <NeedChild>
                 <GamePage />
+              </NeedChild>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/games/memory-match"
+          element={
+            <ProtectedRoute>
+              <NeedChild>
+                <MemoryMatchGame />
+              </NeedChild>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/games/whack-a-mole"
+          element={
+            <ProtectedRoute>
+              <NeedChild>
+                <WhackAMoleGame />
+              </NeedChild>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/games/word-search"
+          element={
+            <ProtectedRoute>
+              <NeedChild>
+                <WordSearchGame />
               </NeedChild>
             </ProtectedRoute>
           }

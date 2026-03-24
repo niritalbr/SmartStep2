@@ -9,6 +9,7 @@ import { childRouter } from "./routes/child.js";
 import { sessionsRouter } from "./routes/sessions.js";
 import { statsRouter } from "./routes/stats.js";
 import { generateRouter } from "./routes/generate.js";
+import { gameRewardRouter } from "./routes/gameReward.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,6 +31,7 @@ app.use("/api/questions", questionsRouter);
 app.use("/api/answers", answersRouter);
 app.use("/api/sessions", sessionsRouter);
 app.use("/api/stats", statsRouter);
+app.use("/api/games", gameRewardRouter);
 
 // Health check
 app.get("/api/health", (_req, res) => {

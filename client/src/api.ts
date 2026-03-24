@@ -140,4 +140,11 @@ export const api = {
     request<any>(`/stats/child/${encodeURIComponent(childId)}`),
 
   getDashboard: () => request<any[]>("/stats/dashboard"),
+
+  // Interactive games
+  claimGameReward: (data: { childId: string; gameType: string; score: number; maxScore: number }) =>
+    request<{ xpGain: number; coinGain: number; newXp: number; newCoins: number; newLevel: number }>(
+      "/games/reward",
+      { method: "POST", body: JSON.stringify(data) }
+    ),
 };

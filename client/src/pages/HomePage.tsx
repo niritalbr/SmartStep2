@@ -5,19 +5,51 @@ import { useAuth } from "../context/AuthContext";
 import { api } from "../api";
 import { Category, CATEGORY_INFO, type CategorySummary } from "../types";
 
-const ISLANDS = [
-  { category: Category.word_relations, x: 15, y: 25, size: "lg" },
-  { category: Category.sentence_completion, x: 55, y: 15, size: "lg" },
-  { category: Category.numbers_in_shapes, x: 80, y: 35, size: "lg" },
-  { category: Category.math_problems, x: 35, y: 55, size: "lg" },
-  { category: Category.shapes, x: 70, y: 65, size: "lg" },
-  { category: Category.vocabulary, x: 20, y: 75, size: "lg" },
+/* ───── Practice categories ────────────────────────── */
+const PRACTICE_ITEMS = [
+  Category.word_relations,
+  Category.sentence_completion,
+  Category.numbers_in_shapes,
+  Category.math_problems,
+  Category.shapes,
+  Category.vocabulary,
 ];
+
+/* ───── Interactive games ──────────────────────────── */
+const GAMES = [
+  {
+    id: "memory-match",
+    name: "משחק זיכרון",
+    icon: "🧠",
+    color: "#6366f1",
+    description: "הפכו קלפים ומצאו זוגות תואמים — מילים, מספרים וצורות",
+    route: "/games/memory-match",
+  },
+  {
+    id: "whack-a-mole",
+    name: "הכה את השומה",
+    icon: "🔨",
+    color: "#ef4444",
+    description: "הכו את השומה עם התשובה הנכונה לפני שהיא נעלמת!",
+    route: "/games/whack-a-mole",
+  },
+  {
+    id: "word-search",
+    name: "חיפוש מילים",
+    icon: "🔍",
+    color: "#10b981",
+    description: "מצאו מילים מוסתרות ברשת אותיות — אוצר מילים עשיר",
+    route: "/games/word-search",
+  },
+];
+
+type Tab = "games" | "practice";
 
 export default function HomePage() {
   const { activeChild } = useAuth();
   const navigate = useNavigate();
   const [summary, setSummary] = useState<Record<string, CategorySummary>>({});
+  const [tab, setTab] = useState<Tab>("games");
 
   useEffect(() => {
     api.getCategorySummary().then(setSummary).catch(() => {});
@@ -83,51 +115,133 @@ export default function HomePage() {
         </div>
       </motion.div>
 
-      {/* Category title */}
-      <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6 text-center">
-        🗺️ בחרו משחק
-      </h2>
-
-      {/* Game islands grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
-        {ISLANDS.map((island, i) => {
-          const info = CATEGORY_INFO[island.category];
-          const catSummary = summary[island.category];
-          return (
-            <motion.button
-              key={island.category}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: i * 0.1, type: "spring", stiffness: 200 }}
-              whileHover={{ scale: 1.05, y: -5 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigate(`/game/${island.category}`)}
-              className="game-card group relative overflow-hidden rounded-2xl p-4 sm:p-6 text-right transition-shadow hover:shadow-xl"
-              style={{
-                background: `linear-gradient(135deg, ${info.color}15, ${info.color}30)`,
-                borderColor: info.color + "40",
-              }}
-            >
-              <div className="relative z-10">
-                <div className="text-3xl sm:text-5xl mb-2 sm:mb-3">{info.icon}</div>
-                <h3 className="text-sm sm:text-xl font-bold text-gray-800 mb-0.5 sm:mb-1">{info.name}</h3>
-                <p className="text-xs sm:text-sm text-gray-500 mb-2 sm:mb-3 line-clamp-2">{info.description}</p>
-                {catSummary && (
-                  <div className="text-xs text-gray-400 hidden sm:block">
-                    {catSummary.total} שאלות זמינות
-                  </div>
-                )}
-              </div>
-
-              {/* Decorative circle */}
-              <div
-                className="absolute -left-6 -bottom-6 w-16 sm:w-24 h-16 sm:h-24 rounded-full opacity-10 group-hover:opacity-20 transition-opacity"
-                style={{ backgroundColor: info.color }}
-              />
-            </motion.button>
-          );
-        })}
+      {/* Tab selector */}
+      <div className="flex bg-white rounded-2xl shadow-sm p-1.5 mb-5 sm:mb-6">
+        <button
+          onClick={() => setTab("games")}
+          className={`flex-1 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-bold transition-all ${
+            tab === "games"
+              ? "bg-gradient-to-l from-indigo-500 to-purple-500 text-white shadow-md"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          🎮 משחקים
+        </button>
+        <button
+          onClick={() => setTab("practice")}
+          className={`flex-1 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-bold transition-all ${
+            tab === "practice"
+              ? "bg-gradient-to-l from-indigo-500 to-purple-500 text-white shadow-md"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          📝 תרגול
+        </button>
       </div>
+
+      {/* ───── Games tab ───────────────────────────── */}
+      {tab === "games" && (
+        <motion.div
+          key="games"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.25 }}
+        >
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4 text-center">
+            🎮 משחקים אינטראקטיביים
+          </h2>
+          <p className="text-xs sm:text-sm text-gray-500 text-center mb-4 sm:mb-6">
+            למדו תוך כדי משחק! כל משחק מעניק XP ומטבעות 🏆
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+            {GAMES.map((game, i) => (
+              <motion.button
+                key={game.id}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: i * 0.1, type: "spring", stiffness: 200 }}
+                whileHover={{ scale: 1.03, y: -4 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => navigate(game.route)}
+                className="group relative overflow-hidden rounded-2xl p-5 sm:p-6 text-center transition-shadow hover:shadow-xl"
+                style={{
+                  background: `linear-gradient(135deg, ${game.color}10, ${game.color}25)`,
+                }}
+              >
+                <div className="relative z-10">
+                  <div className="text-4xl sm:text-6xl mb-3">{game.icon}</div>
+                  <h3 className="text-base sm:text-xl font-bold text-gray-800 mb-1">{game.name}</h3>
+                  <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">{game.description}</p>
+                </div>
+                <div
+                  className="absolute -left-6 -bottom-6 w-20 sm:w-28 h-20 sm:h-28 rounded-full opacity-10 group-hover:opacity-20 transition-opacity"
+                  style={{ backgroundColor: game.color }}
+                />
+                <div
+                  className="absolute -right-4 -top-4 w-14 sm:w-20 h-14 sm:h-20 rounded-full opacity-5 group-hover:opacity-15 transition-opacity"
+                  style={{ backgroundColor: game.color }}
+                />
+              </motion.button>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* ───── Practice tab ────────────────────────── */}
+      {tab === "practice" && (
+        <motion.div
+          key="practice"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.25 }}
+        >
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4 text-center">
+            📝 אזור תרגול
+          </h2>
+          <p className="text-xs sm:text-sm text-gray-500 text-center mb-4 sm:mb-6">
+            תרגלו שאלות לפי קטגוריה — בדיוק כמו במבחן! 🎯
+          </p>
+
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
+            {PRACTICE_ITEMS.map((cat, i) => {
+              const info = CATEGORY_INFO[cat];
+              const catSummary = summary[cat];
+              return (
+                <motion.button
+                  key={cat}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: i * 0.08, type: "spring", stiffness: 200 }}
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigate(`/game/${cat}`)}
+                  className="game-card group relative overflow-hidden rounded-2xl p-4 sm:p-6 text-right transition-shadow hover:shadow-xl"
+                  style={{
+                    background: `linear-gradient(135deg, ${info.color}15, ${info.color}30)`,
+                    borderColor: info.color + "40",
+                  }}
+                >
+                  <div className="relative z-10">
+                    <div className="text-3xl sm:text-5xl mb-2 sm:mb-3">{info.icon}</div>
+                    <h3 className="text-sm sm:text-xl font-bold text-gray-800 mb-0.5 sm:mb-1">{info.name}</h3>
+                    <p className="text-xs sm:text-sm text-gray-500 mb-2 sm:mb-3 line-clamp-2">{info.description}</p>
+                    {catSummary && (
+                      <div className="text-xs text-gray-400 hidden sm:block">
+                        {catSummary.total} שאלות זמינות
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    className="absolute -left-6 -bottom-6 w-16 sm:w-24 h-16 sm:h-24 rounded-full opacity-10 group-hover:opacity-20 transition-opacity"
+                    style={{ backgroundColor: info.color }}
+                  />
+                </motion.button>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }
