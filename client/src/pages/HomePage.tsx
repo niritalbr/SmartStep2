@@ -41,6 +41,14 @@ const GAMES = [
     description: "מצאו מילים מוסתרות ברשת אותיות — אוצר מילים עשיר",
     route: "/games/word-search",
   },
+  {
+    id: "synonym-invaders",
+    name: "פלישת המילים",
+    icon: "🚀",
+    color: "#8b5cf6",
+    description: "ירו במילים שאינן נרדפות ותנו לנרדפות לעבור! מהירות עולה",
+    route: "/games/synonym-invaders",
+  },
 ];
 
 type Tab = "games" | "practice";

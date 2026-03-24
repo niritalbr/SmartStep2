@@ -12,6 +12,7 @@ import ProfilePage from "./pages/ProfilePage";
 import MemoryMatchGame from "./pages/games/MemoryMatchGame";
 import WhackAMoleGame from "./pages/games/WhackAMoleGame";
 import WordSearchGame from "./pages/games/WordSearchGame";
+import SynonymInvadersGame from "./pages/games/SynonymInvadersGame";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -94,6 +95,16 @@ export default function App() {
             <ProtectedRoute>
               <NeedChild>
                 <WordSearchGame />
+              </NeedChild>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/games/synonym-invaders"
+          element={
+            <ProtectedRoute>
+              <NeedChild>
+                <SynonymInvadersGame />
               </NeedChild>
             </ProtectedRoute>
           }
