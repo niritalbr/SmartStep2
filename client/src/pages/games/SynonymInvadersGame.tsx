@@ -67,8 +67,6 @@ const SPAWN_INTERVAL_MIN = 900;
 const FALL_SPEED_BASE = 0.22; // percent per frame
 const FALL_SPEED_MAX = 0.75;
 const BULLET_SPEED = 2.5;
-const SHIP_MOVE_SPEED = 2.2; // percent per frame when key held
-const SHIP_LERP = 0.18;       // smoothing factor for ship movement
 
 /* ───── component ──────────────────────────────────── */
 
@@ -92,7 +90,6 @@ export default function SynonymInvadersGame() {
     fallingWords: [] as FallingWord[],
     bullets: [] as Bullet[],
     shipX: 50,
-    shipTargetX: 50,
     lives: MAX_LIVES,
     score: 0,
     synonymsCleared: 0,
@@ -104,7 +101,6 @@ export default function SynonymInvadersGame() {
     spawnInterval: SPAWN_INTERVAL_BASE,
     spawnCount: 0,
     lastDistractorIdx: -1,
-    keysDown: new Set<string>(),
   });
   const frameRef = useRef<number>(0);
   const spawnRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -182,18 +178,6 @@ export default function SynonymInvadersGame() {
   const gameLoop = useCallback(() => {
     const g = gameRef.current;
     if (!g.running) return;
-
-    // Smooth ship movement via keyboard
-    const keys = g.keysDown;
-    if (keys.has("ArrowLeft") || keys.has("a")) {
-      g.shipTargetX = Math.max(5, g.shipTargetX - SHIP_MOVE_SPEED);
-    }
-    if (keys.has("ArrowRight") || keys.has("d")) {
-      g.shipTargetX = Math.min(95, g.shipTargetX + SHIP_MOVE_SPEED);
-    }
-    // Lerp ship position toward target
-    g.shipX += (g.shipTargetX - g.shipX) * SHIP_LERP;
-    setShipX(g.shipX);
 
     // Move bullets up
     g.bullets = g.bullets.filter(b => b.y > -5);
@@ -311,26 +295,24 @@ export default function SynonymInvadersGame() {
     g.bullets.push(bullet);
   }, []);
 
-  // Keyboard — track key held state for smooth movement
+  // Keyboard — direct movement per keypress
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKey = (e: KeyboardEvent) => {
       const g = gameRef.current;
       if (!g.running) return;
-      g.keysDown.add(e.key);
-      if (e.key === " " || e.key === "ArrowUp") {
+      if (e.key === "ArrowLeft" || e.key === "a") {
+        g.shipX = Math.max(5, g.shipX - 4);
+        setShipX(g.shipX);
+      } else if (e.key === "ArrowRight" || e.key === "d") {
+        g.shipX = Math.min(95, g.shipX + 4);
+        setShipX(g.shipX);
+      } else if (e.key === " " || e.key === "ArrowUp") {
         e.preventDefault();
         shoot();
       }
     };
-    const handleKeyUp = (e: KeyboardEvent) => {
-      gameRef.current.keysDown.delete(e.key);
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
-    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
   }, [shoot]);
 
   // Touch controls
@@ -340,7 +322,8 @@ export default function SynonymInvadersGame() {
     const rect = containerRef.current.getBoundingClientRect();
     const touch = e.touches[0];
     const pct = ((touch.clientX - rect.left) / rect.width) * 100;
-    g.shipTargetX = Math.max(5, Math.min(95, pct));
+    g.shipX = Math.max(5, Math.min(95, pct));
+    setShipX(g.shipX);
   }, []);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -354,7 +337,6 @@ export default function SynonymInvadersGame() {
     g.fallingWords = [];
     g.bullets = [];
     g.shipX = 50;
-    g.shipTargetX = 50;
     g.lives = MAX_LIVES;
     g.score = 0;
     g.synonymsCleared = 0;
@@ -365,7 +347,6 @@ export default function SynonymInvadersGame() {
     g.spawnInterval = SPAWN_INTERVAL_BASE;
     g.spawnCount = 0;
     g.lastDistractorIdx = -1;
-    g.keysDown = new Set();
 
     setShipX(50);
     setLives(MAX_LIVES);
