@@ -61,9 +61,9 @@ function generateMathQ(round: number): MoleQ {
 /* ───── constants ──────────────────────────────────── */
 const TOTAL_ROUNDS = 15;
 const HOLES = 6; // 2×3 grid
-const MOLE_SHOW_BASE = 2200; // ms
-const MOLE_SHOW_MIN = 1000;
-const MOLE_SPEED_DECAY = 80; // ms faster each round
+const MOLE_SHOW_BASE = 10000; // ms — start slow so kids can read & think
+const MOLE_SHOW_MIN = 3000;
+const MOLE_SPEED_DECAY = 450; // ms faster each round
 
 /* ───── component ──────────────────────────────────── */
 export default function WhackAMoleGame() {
