@@ -1,13 +1,15 @@
 /**
  * Exam route – generates a full simulation exam matching
- * the real מבחן מחוננים שלב ב' (Gifted Test Stage B).
+ * the real מבחן מחוננים שלב ב' (Gifted Test Stage B) – 2026 format.
  *
- * Structure:
- *   Section 1 – חשיבה מילולית (verbal)    : ~20 questions, 25 min
- *   Section 2 – חשיבה כמותית (quantitative): ~20 questions, 25 min
- *   Section 3 – חשיבה צורנית (figural)     : ~15 questions, 20 min
+ * Structure (5 sections, 10 questions each):
+ *   Section 1 – חשבון (arithmetic)           : 10 questions, 14 min
+ *   Section 2 – השלמת משפטים (sentence comp.) : 10 questions, 14 min
+ *   Section 3 – יחסי מילים (word relations)   : 10 questions, 14 min
+ *   Section 4 – מספרים בצורות (numbers/shapes) : 10 questions, 14 min
+ *   Section 5 – צורות (shapes)                : 10 questions, 14 min
  *
- * Total: 55 questions, 70 minutes
+ * Total: 50 questions, 70 minutes
  */
 
 import { Router, Response } from "express";
@@ -83,30 +85,43 @@ interface SectionDef {
 
 const EXAM_SECTIONS: SectionDef[] = [
   {
-    id: "verbal",
-    name: "חשיבה מילולית",
-    timeLimitMin: 25,
+    id: "arithmetic",
+    name: "חשבון",
+    timeLimitMin: 14,
     categories: [
-      { category: "word_relations", count: 8 },
-      { category: "sentence_completion", count: 6 },
-      { category: "vocabulary", count: 6 },
+      { category: "math_problems", count: 10 },
     ],
   },
   {
-    id: "quantitative",
-    name: "חשיבה כמותית",
-    timeLimitMin: 25,
+    id: "sentence_completion",
+    name: "השלמת משפטים",
+    timeLimitMin: 14,
     categories: [
-      { category: "math_problems", count: 10 },
+      { category: "sentence_completion", count: 10 },
+    ],
+  },
+  {
+    id: "word_relations",
+    name: "יחסי מילים",
+    timeLimitMin: 14,
+    categories: [
+      { category: "word_relations", count: 10 },
+    ],
+  },
+  {
+    id: "numbers_in_shapes",
+    name: "מספרים בצורות",
+    timeLimitMin: 14,
+    categories: [
       { category: "numbers_in_shapes", count: 10 },
     ],
   },
   {
-    id: "figural",
-    name: "חשיבה צורנית",
-    timeLimitMin: 20,
+    id: "shapes",
+    name: "צורות",
+    timeLimitMin: 14,
     categories: [
-      { category: "shapes", count: 15 },
+      { category: "shapes", count: 10 },
     ],
   },
 ];

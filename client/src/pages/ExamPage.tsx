@@ -74,18 +74,19 @@ function QuestionText({ text }: { text: string }) {
 /* ───── Section Info ───────────────────────────────── */
 
 const SECTION_META: Record<string, { icon: string; color: string; desc: string }> = {
-  verbal: { icon: "📝", color: "#6366f1", desc: "קשרי מילים, השלמת משפטים ואוצר מילים" },
-  quantitative: { icon: "🔢", color: "#ef4444", desc: "בעיות חשבון ומספרים בצורות" },
-  figural: { icon: "🔷", color: "#8b5cf6", desc: "צורות, מטריצות וסדרות" },
+  arithmetic: { icon: "🔢", color: "#ef4444", desc: "בעיות מילוליות וחשיבה כמותית" },
+  sentence_completion: { icon: "📝", color: "#6366f1", desc: "מציאת המילה המתאימה להשלמת המשפט" },
+  word_relations: { icon: "🔗", color: "#f59e0b", desc: "אנלוגיות — הבנת הקשר בין זוגות מילים" },
+  numbers_in_shapes: { icon: "🔷", color: "#10b981", desc: "תרגילי חשבון וקשרים בתוך צורות" },
+  shapes: { icon: "🧩", color: "#8b5cf6", desc: "מטריצות, מיון צורות וסדרות" },
 };
 
 const CATEGORY_NAMES: Record<string, string> = {
-  word_relations: "קשרי מילים",
+  math_problems: "חשבון",
   sentence_completion: "השלמת משפטים",
-  vocabulary: "אוצר מילים",
-  math_problems: "בעיות חשבון",
+  word_relations: "יחסי מילים",
   numbers_in_shapes: "מספרים בצורות",
-  shapes: "צורות ומטריצות",
+  shapes: "צורות",
 };
 
 /* ───── Component ──────────────────────────────────── */
@@ -316,9 +317,11 @@ export default function ExamPage() {
           {/* Sections overview */}
           <div className="space-y-3 mb-6">
             {[
-              { id: "verbal", name: "פרק 1: חשיבה מילולית", questions: 20, time: 25 },
-              { id: "quantitative", name: "פרק 2: חשיבה כמותית", questions: 20, time: 25 },
-              { id: "figural", name: "פרק 3: חשיבה צורנית", questions: 15, time: 20 },
+              { id: "arithmetic", name: "פרק 1: חשבון", questions: 10, time: 14 },
+              { id: "sentence_completion", name: "פרק 2: השלמת משפטים", questions: 10, time: 14 },
+              { id: "word_relations", name: "פרק 3: יחסי מילים", questions: 10, time: 14 },
+              { id: "numbers_in_shapes", name: "פרק 4: מספרים בצורות", questions: 10, time: 14 },
+              { id: "shapes", name: "פרק 5: צורות", questions: 10, time: 14 },
             ].map(s => {
               const meta = SECTION_META[s.id];
               return (
@@ -355,7 +358,7 @@ export default function ExamPage() {
 
           <div className="text-center">
             <div className="text-xs text-gray-400 mb-3">
-              סה"כ: 55 שאלות · 70 דקות
+              סה"כ: 50 שאלות · 70 דקות
             </div>
             <button
               onClick={startExam}
@@ -381,7 +384,7 @@ export default function ExamPage() {
           className="text-6xl mb-4"
         >📋</motion.div>
         <p className="text-gray-500 text-lg mb-2">מכין את המבחן...</p>
-        <p className="text-gray-400 text-sm">יוצר 55 שאלות ב-6 קטגוריות</p>
+        <p className="text-gray-400 text-sm">יוצר 50 שאלות ב-5 פרקים</p>
       </div>
     );
   }
