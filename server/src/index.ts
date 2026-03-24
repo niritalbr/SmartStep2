@@ -10,6 +10,7 @@ import { sessionsRouter } from "./routes/sessions.js";
 import { statsRouter } from "./routes/stats.js";
 import { generateRouter } from "./routes/generate.js";
 import { gameRewardRouter } from "./routes/gameReward.js";
+import { examRouter } from "./routes/exam.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,6 +33,7 @@ app.use("/api/answers", answersRouter);
 app.use("/api/sessions", sessionsRouter);
 app.use("/api/stats", statsRouter);
 app.use("/api/games", gameRewardRouter);
+app.use("/api/exam", examRouter);
 
 // Health check
 app.get("/api/health", (_req, res) => {

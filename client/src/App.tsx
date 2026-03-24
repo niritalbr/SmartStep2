@@ -13,6 +13,7 @@ import MemoryMatchGame from "./pages/games/MemoryMatchGame";
 import WhackAMoleGame from "./pages/games/WhackAMoleGame";
 import WordSearchGame from "./pages/games/WordSearchGame";
 import SynonymInvadersGame from "./pages/games/SynonymInvadersGame";
+import ExamPage from "./pages/ExamPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -105,6 +106,16 @@ export default function App() {
             <ProtectedRoute>
               <NeedChild>
                 <SynonymInvadersGame />
+              </NeedChild>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/exam"
+          element={
+            <ProtectedRoute>
+              <NeedChild>
+                <ExamPage />
               </NeedChild>
             </ProtectedRoute>
           }

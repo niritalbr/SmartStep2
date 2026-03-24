@@ -147,4 +147,18 @@ export const api = {
       "/games/reward",
       { method: "POST", body: JSON.stringify(data) }
     ),
+
+  // Exam simulation
+  generateExam: (data: { childId: string }) =>
+    request<{ sections: { id: string; name: string; timeLimitMin: number; questions: any[] }[] }>(
+      "/exam/generate",
+      { method: "POST", body: JSON.stringify(data) }
+    ),
+
+  submitExam: (data: {
+    childId: string;
+    sections: { id: string; answers: { questionId: string; selected: string; timeSpentMs: number }[] }[];
+    totalDurationSec: number;
+  }) =>
+    request<any>("/exam/submit", { method: "POST", body: JSON.stringify(data) }),
 };

@@ -51,7 +51,7 @@ const GAMES = [
   },
 ];
 
-type Tab = "games" | "practice";
+type Tab = "games" | "practice" | "exam";
 
 export default function HomePage() {
   const { activeChild } = useAuth();
@@ -144,6 +144,16 @@ export default function HomePage() {
           }`}
         >
           📝 תרגול
+        </button>
+        <button
+          onClick={() => setTab("exam")}
+          className={`flex-1 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-bold transition-all ${
+            tab === "exam"
+              ? "bg-gradient-to-l from-red-500 to-orange-500 text-white shadow-md"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          📋 מבחן
         </button>
       </div>
 
@@ -247,6 +257,64 @@ export default function HomePage() {
                 </motion.button>
               );
             })}
+          </div>
+        </motion.div>
+      )}
+
+      {/* ───── Exam tab ────────────────────────────── */}
+      {tab === "exam" && (
+        <motion.div
+          key="exam"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+        >
+          <div className="text-center mb-4 sm:mb-6">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">
+              📋 מבחן סימולציה מלא
+            </h2>
+            <p className="text-xs sm:text-sm text-gray-500 mb-4">
+              סימולציה מלאה של מבחן מחוננים שלב ב' — 55 שאלות, 70 דקות, 3 פרקים
+            </p>
+          </div>
+
+          <div className="max-w-md mx-auto">
+            <motion.button
+              whileHover={{ scale: 1.03, y: -4 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => navigate("/exam")}
+              className="w-full group relative overflow-hidden rounded-2xl p-6 sm:p-8 text-center transition-shadow hover:shadow-xl"
+              style={{ background: "linear-gradient(135deg, #ef444415, #f97316 25)" }}
+            >
+              <div className="relative z-10">
+                <div className="text-5xl sm:text-7xl mb-4">📋</div>
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">התחל מבחן</h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  3 פרקים: חשיבה מילולית, כמותית וצורנית
+                </p>
+                <div className="flex justify-center gap-4 text-xs text-gray-400">
+                  <span>📝 55 שאלות</span>
+                  <span>⏱ 70 דקות</span>
+                  <span>🏆 ציון מפורט</span>
+                </div>
+              </div>
+              <div className="absolute -left-6 -bottom-6 w-28 h-28 rounded-full bg-red-400 opacity-10 group-hover:opacity-20 transition-opacity" />
+              <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-orange-400 opacity-5 group-hover:opacity-15 transition-opacity" />
+            </motion.button>
+
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              {[
+                { icon: "📝", name: "חשיבה מילולית", time: "25 דק'", qs: 20 },
+                { icon: "🔢", name: "חשיבה כמותית", time: "25 דק'", qs: 20 },
+                { icon: "🔷", name: "חשיבה צורנית", time: "20 דק'", qs: 15 },
+              ].map(s => (
+                <div key={s.name} className="bg-white rounded-xl p-3 text-center shadow-sm">
+                  <div className="text-2xl mb-1">{s.icon}</div>
+                  <div className="text-xs font-bold text-gray-700">{s.name}</div>
+                  <div className="text-xs text-gray-400">{s.qs} שאלות · {s.time}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </motion.div>
       )}
