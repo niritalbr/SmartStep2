@@ -62,10 +62,10 @@ interface Bullet {
 /* ───── constants ──────────────────────────────────── */
 const MAX_LIVES = 3;
 const WORDS_TO_WIN = 12; // correct synonyms to pass for a full game
-const SPAWN_INTERVAL_BASE = 1800;
-const SPAWN_INTERVAL_MIN = 800;
-const FALL_SPEED_BASE = 0.35; // percent per frame
-const FALL_SPEED_MAX = 0.9;
+const SPAWN_INTERVAL_BASE = 2600;
+const SPAWN_INTERVAL_MIN = 900;
+const FALL_SPEED_BASE = 0.22; // percent per frame
+const FALL_SPEED_MAX = 0.75;
 const BULLET_SPEED = 2.5;
 const SHIP_MOVE_SPEED = 2.2; // percent per frame when key held
 const SHIP_LERP = 0.18;       // smoothing factor for ship movement
@@ -559,9 +559,7 @@ export default function SynonymInvadersGame() {
                       ? "bg-emerald-400/90 text-white ring-2 ring-emerald-300"
                       : isPassedBad
                         ? "bg-red-600/90 text-white ring-2 ring-red-400"
-                        : w.isSynonym
-                          ? "bg-emerald-500/90 text-white border border-emerald-300"
-                          : "bg-red-500/80 text-white border border-red-300"
+                        : "bg-sky-500/85 text-white border border-sky-300"
                   }`}
                 style={{
                   left: `${w.x}%`,
