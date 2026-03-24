@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
@@ -42,14 +42,15 @@ function shuffle<T>(arr: T[]): T[] {
 
 /* ───── types ──────────────────────────────────────── */
 
+type WordState = "falling" | "exploding" | "passed-good" | "passed-bad" | "dead";
+
 interface FallingWord {
   id: number;
   text: string;
   isSynonym: boolean;
-  x: number; // 0-100 percent
-  y: number; // 0-100 percent (100 = bottom)
-  alive: boolean;
-  exploding: boolean;
+  x: number;
+  y: number;
+  state: WordState;
 }
 
 interface Bullet {
@@ -66,6 +67,8 @@ const SPAWN_INTERVAL_MIN = 800;
 const FALL_SPEED_BASE = 0.35; // percent per frame
 const FALL_SPEED_MAX = 0.9;
 const BULLET_SPEED = 2.5;
+const SHIP_MOVE_SPEED = 2.2; // percent per frame when key held
+const SHIP_LERP = 0.18;       // smoothing factor for ship movement
 
 /* ───── component ──────────────────────────────────── */
 
@@ -74,9 +77,8 @@ export default function SynonymInvadersGame() {
   const { activeChild, updateActiveChild } = useAuth();
 
   const [phase, setPhase] = useState<"intro" | "playing" | "done">("intro");
-  const [shipX, setShipX] = useState(50); // center percent
+  const [shipX, setShipX] = useState(50);
   const [shipWord, setShipWord] = useState("");
-  const [, setCurrentGroup] = useState<WordGroup | null>(null);
   const [fallingWords, setFallingWords] = useState<FallingWord[]>([]);
   const [bullets, setBullets] = useState<Bullet[]>([]);
   const [lives, setLives] = useState(MAX_LIVES);
@@ -90,6 +92,7 @@ export default function SynonymInvadersGame() {
     fallingWords: [] as FallingWord[],
     bullets: [] as Bullet[],
     shipX: 50,
+    shipTargetX: 50,
     lives: MAX_LIVES,
     score: 0,
     synonymsCleared: 0,
@@ -99,11 +102,23 @@ export default function SynonymInvadersGame() {
     running: false,
     fallSpeed: FALL_SPEED_BASE,
     spawnInterval: SPAWN_INTERVAL_BASE,
-    synonymQueued: false,
+    spawnCount: 0,
+    lastDistractorIdx: -1,
+    keysDown: new Set<string>(),
   });
   const frameRef = useRef<number>(0);
   const spawnRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Pre-generate star positions so they don't re-randomize on each render
+  const starPositions = useMemo(() =>
+    Array.from({ length: 40 }, () => ({
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 1.5 + 0.5,
+      opacity: Math.random() * 0.3 + 0.08,
+    })),
+  []);
 
   /* ───── pick new word group ──────────────────────── */
   const pickNewGroup = useCallback(() => {
@@ -113,9 +128,9 @@ export default function SynonymInvadersGame() {
     const idx = WORD_GROUPS.indexOf(pool[Math.floor(Math.random() * pool.length)]);
     g.usedGroups.add(idx);
     g.currentGroup = WORD_GROUPS[idx];
-    g.synonymQueued = false;
+    g.spawnCount = 0;
+    g.lastDistractorIdx = -1;
     setShipWord(WORD_GROUPS[idx].base);
-    setCurrentGroup(WORD_GROUPS[idx]);
   }, []);
 
   /* ───── spawn a falling word ─────────────────────── */
@@ -127,24 +142,25 @@ export default function SynonymInvadersGame() {
     let text: string;
     let isSynonym = false;
 
-    // Every 3-5 words, guarantee a synonym falls
-    const existingSynonyms = g.fallingWords.filter(w => w.isSynonym && w.alive).length;
-    const shouldBeSynonym = !g.synonymQueued && (existingSynonyms === 0 && Math.random() < 0.4);
+    // Guarantee a synonym every 2-4 distractors
+    const synonymNeeded = g.spawnCount >= 2 + Math.floor(Math.random() * 2);
+    const hasSynonymOnScreen = g.fallingWords.some(w => w.isSynonym && w.state === "falling");
 
-    if (shouldBeSynonym) {
+    if (synonymNeeded || (!hasSynonymOnScreen && g.spawnCount >= 2)) {
       const syns = shuffle(group.synonyms);
       text = syns[0];
       isSynonym = true;
-      g.synonymQueued = true;
-    } else if (Math.random() < 0.3 && !g.synonymQueued) {
-      const syns = shuffle(group.synonyms);
-      text = syns[0];
-      isSynonym = true;
-      g.synonymQueued = true;
+      g.spawnCount = 0;
     } else {
-      const distractors = shuffle(group.distractors);
-      text = distractors[0];
+      const distractors = group.distractors;
+      let idx = Math.floor(Math.random() * distractors.length);
+      if (idx === g.lastDistractorIdx && distractors.length > 1) {
+        idx = (idx + 1) % distractors.length;
+      }
+      g.lastDistractorIdx = idx;
+      text = distractors[idx];
       isSynonym = false;
+      g.spawnCount++;
     }
 
     const word: FallingWord = {
@@ -153,13 +169,12 @@ export default function SynonymInvadersGame() {
       isSynonym,
       x: 8 + Math.random() * 84,
       y: -5,
-      alive: true,
-      exploding: false,
+      state: "falling",
     };
     g.fallingWords.push(word);
 
     // Schedule next spawn
-    const jitter = Math.random() * 600 - 300;
+    const jitter = Math.random() * 500 - 250;
     spawnRef.current = setTimeout(spawnWord, g.spawnInterval + jitter);
   }, []);
 
@@ -168,29 +183,38 @@ export default function SynonymInvadersGame() {
     const g = gameRef.current;
     if (!g.running) return;
 
+    // Smooth ship movement via keyboard
+    const keys = g.keysDown;
+    if (keys.has("ArrowLeft") || keys.has("a")) {
+      g.shipTargetX = Math.max(5, g.shipTargetX - SHIP_MOVE_SPEED);
+    }
+    if (keys.has("ArrowRight") || keys.has("d")) {
+      g.shipTargetX = Math.min(95, g.shipTargetX + SHIP_MOVE_SPEED);
+    }
+    // Lerp ship position toward target
+    g.shipX += (g.shipTargetX - g.shipX) * SHIP_LERP;
+    setShipX(g.shipX);
+
     // Move bullets up
     g.bullets = g.bullets.filter(b => b.y > -5);
     g.bullets.forEach(b => { b.y -= BULLET_SPEED; });
 
     // Move falling words down
     g.fallingWords.forEach(w => {
-      if (!w.alive) return;
+      if (w.state !== "falling") return;
       w.y += g.fallSpeed;
     });
 
     // Check bullet-word collisions
     for (const b of g.bullets) {
       for (const w of g.fallingWords) {
-        if (!w.alive || w.exploding) continue;
+        if (w.state !== "falling") continue;
         const dx = Math.abs(b.x - w.x);
         const dy = Math.abs(b.y - w.y);
         if (dx < 8 && dy < 4) {
-          // Hit!
-          w.alive = false;
-          w.exploding = true;
-          b.y = -100; // remove bullet
+          w.state = "exploding";
+          b.y = -100;
           if (w.isSynonym) {
-            // Shot a synonym — mistake! Lose a life
             g.lives--;
             setLives(g.lives);
             setHitFlash(true);
@@ -201,10 +225,11 @@ export default function SynonymInvadersGame() {
               return;
             }
           } else {
-            // Correctly shot a distractor
             g.score += 10;
             setScore(g.score);
           }
+          const wRef = w;
+          setTimeout(() => { wRef.state = "dead"; }, 350);
           break;
         }
       }
@@ -212,44 +237,43 @@ export default function SynonymInvadersGame() {
 
     // Check words reaching bottom
     g.fallingWords.forEach(w => {
-      if (!w.alive) return;
-      if (w.y >= 90) {
-        w.alive = false;
+      if (w.state !== "falling") return;
+      if (w.y >= 88) {
         if (w.isSynonym) {
-          // Synonym passed through — correct!
+          w.state = "passed-good";
           g.score += 25;
           g.synonymsCleared++;
           setScore(g.score);
           setSynonymsCleared(g.synonymsCleared);
 
-          // Increase difficulty
           g.fallSpeed = Math.min(FALL_SPEED_MAX, g.fallSpeed + 0.03);
           g.spawnInterval = Math.max(SPAWN_INTERVAL_MIN, g.spawnInterval - 70);
 
           if (g.synonymsCleared >= WORDS_TO_WIN) {
             g.running = false;
-            finishGame(g.score, g.synonymsCleared);
+            setTimeout(() => finishGame(g.score, g.synonymsCleared), 600);
             return;
           }
-          // New word for ship
           pickNewGroup();
         } else {
-          // Distractor reached bottom — mistake! Lose a life
+          w.state = "passed-bad";
           g.lives--;
           setLives(g.lives);
           setHitFlash(true);
           setTimeout(() => setHitFlash(false), 300);
           if (g.lives <= 0) {
             g.running = false;
-            finishGame(g.score, g.synonymsCleared);
+            setTimeout(() => finishGame(g.score, g.synonymsCleared), 600);
             return;
           }
         }
+        const wRef = w;
+        setTimeout(() => { wRef.state = "dead"; }, 600);
       }
     });
 
-    // Cleanup dead words after explosion animation
-    g.fallingWords = g.fallingWords.filter(w => w.alive || w.y < 95);
+    // Cleanup dead words
+    g.fallingWords = g.fallingWords.filter(w => w.state !== "dead");
 
     // Update React state
     setFallingWords([...g.fallingWords]);
@@ -282,29 +306,31 @@ export default function SynonymInvadersGame() {
     const bullet: Bullet = {
       id: g.nextId++,
       x: g.shipX,
-      y: 88,
+      y: 86,
     };
     g.bullets.push(bullet);
   }, []);
 
-  // Keyboard
+  // Keyboard — track key held state for smooth movement
   useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       const g = gameRef.current;
       if (!g.running) return;
-      if (e.key === "ArrowLeft" || e.key === "a") {
-        g.shipX = Math.max(5, g.shipX - 4);
-        setShipX(g.shipX);
-      } else if (e.key === "ArrowRight" || e.key === "d") {
-        g.shipX = Math.min(95, g.shipX + 4);
-        setShipX(g.shipX);
-      } else if (e.key === " " || e.key === "ArrowUp") {
+      g.keysDown.add(e.key);
+      if (e.key === " " || e.key === "ArrowUp") {
         e.preventDefault();
         shoot();
       }
     };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
+    const handleKeyUp = (e: KeyboardEvent) => {
+      gameRef.current.keysDown.delete(e.key);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
   }, [shoot]);
 
   // Touch controls
@@ -314,8 +340,7 @@ export default function SynonymInvadersGame() {
     const rect = containerRef.current.getBoundingClientRect();
     const touch = e.touches[0];
     const pct = ((touch.clientX - rect.left) / rect.width) * 100;
-    g.shipX = Math.max(5, Math.min(95, pct));
-    setShipX(g.shipX);
+    g.shipTargetX = Math.max(5, Math.min(95, pct));
   }, []);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -329,6 +354,7 @@ export default function SynonymInvadersGame() {
     g.fallingWords = [];
     g.bullets = [];
     g.shipX = 50;
+    g.shipTargetX = 50;
     g.lives = MAX_LIVES;
     g.score = 0;
     g.synonymsCleared = 0;
@@ -337,7 +363,9 @@ export default function SynonymInvadersGame() {
     g.running = true;
     g.fallSpeed = FALL_SPEED_BASE;
     g.spawnInterval = SPAWN_INTERVAL_BASE;
-    g.synonymQueued = false;
+    g.spawnCount = 0;
+    g.lastDistractorIdx = -1;
+    g.keysDown = new Set();
 
     setShipX(50);
     setLives(MAX_LIVES);
@@ -492,51 +520,69 @@ export default function SynonymInvadersGame() {
         className={`relative w-full rounded-2xl overflow-hidden touch-none ${hitFlash ? "ring-4 ring-red-400" : ""}`}
         style={{
           aspectRatio: "3 / 4",
-          background: "linear-gradient(180deg, #0f0c29 0%, #302b63 50%, #24243e 100%)",
+          background: "linear-gradient(180deg, #0f0c29 0%, #1a1640 40%, #24243e 100%)",
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
       >
-        {/* Stars background */}
-        {Array.from({ length: 30 }).map((_, i) => (
+        {/* Subtle static stars */}
+        {starPositions.map((star, i) => (
           <div
             key={i}
-            className="absolute rounded-full bg-white"
+            className="absolute rounded-full bg-white/60"
             style={{
-              width: Math.random() * 2 + 1,
-              height: Math.random() * 2 + 1,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              opacity: Math.random() * 0.6 + 0.2,
+              width: star.size,
+              height: star.size,
+              left: `${star.x}%`,
+              top: `${star.y}%`,
+              opacity: star.opacity,
             }}
           />
         ))}
 
         {/* Falling words */}
         <AnimatePresence>
-          {fallingWords.map(w => (
-            <motion.div
-              key={w.id}
-              className={`absolute px-2 py-1 rounded-lg text-xs sm:text-sm font-bold whitespace-nowrap
-                ${w.exploding
-                  ? "bg-orange-400/80 text-white scale-125"
-                  : w.isSynonym
-                    ? "bg-emerald-500/90 text-white border border-emerald-300"
-                    : "bg-red-500/80 text-white border border-red-300"
-                }`}
-              style={{
-                left: `${w.x}%`,
-                top: `${w.y}%`,
-                transform: "translate(-50%, -50%)",
-              }}
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: w.exploding ? 0 : 1, scale: w.exploding ? 1.5 : 1 }}
-              exit={{ opacity: 0, scale: 0 }}
-              transition={{ duration: w.exploding ? 0.3 : 0.15 }}
-            >
-              {w.text}
-            </motion.div>
-          ))}
+          {fallingWords.map(w => {
+            if (w.state === "dead") return null;
+            const isExploding = w.state === "exploding";
+            const isPassedGood = w.state === "passed-good";
+            const isPassedBad = w.state === "passed-bad";
+            const isLeaving = isExploding || isPassedGood || isPassedBad;
+
+            return (
+              <motion.div
+                key={w.id}
+                className={`absolute px-2 py-1 rounded-lg text-xs sm:text-sm font-bold whitespace-nowrap pointer-events-none
+                  ${isExploding
+                    ? "bg-orange-400/90 text-white"
+                    : isPassedGood
+                      ? "bg-emerald-400/90 text-white ring-2 ring-emerald-300"
+                      : isPassedBad
+                        ? "bg-red-600/90 text-white ring-2 ring-red-400"
+                        : w.isSynonym
+                          ? "bg-emerald-500/90 text-white border border-emerald-300"
+                          : "bg-red-500/80 text-white border border-red-300"
+                  }`}
+                style={{
+                  left: `${w.x}%`,
+                  top: `${w.y}%`,
+                  transform: "translate(-50%, -50%)",
+                }}
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{
+                  opacity: isLeaving ? 0 : 1,
+                  scale: isExploding ? 1.6 : isPassedGood ? 1.4 : isPassedBad ? 1.3 : 1,
+                  y: isPassedGood ? -20 : isPassedBad ? 10 : 0,
+                }}
+                exit={{ opacity: 0, scale: 0 }}
+                transition={{ duration: isLeaving ? 0.5 : 0.12 }}
+              >
+                {isPassedGood && <span className="mr-1">✅</span>}
+                {isPassedBad && <span className="mr-1">💥</span>}
+                {w.text}
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
 
         {/* Bullets */}
@@ -554,10 +600,11 @@ export default function SynonymInvadersGame() {
 
         {/* Ship (the word) */}
         <div
-          className="absolute bottom-[4%] transition-[left] duration-75"
+          className="absolute bottom-[4%]"
           style={{
             left: `${shipX}%`,
             transform: "translateX(-50%)",
+            transition: "left 0.06s linear",
           }}
         >
           {/* Ship body */}
@@ -570,7 +617,7 @@ export default function SynonymInvadersGame() {
         </div>
 
         {/* Helper text */}
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 text-white/50 text-[10px] sm:text-xs text-center pointer-events-none">
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 text-white/40 text-[10px] sm:text-xs text-center pointer-events-none">
           תנו לנרדפת לעבור 🟢 | ירו בשונות 🔴
         </div>
       </div>
