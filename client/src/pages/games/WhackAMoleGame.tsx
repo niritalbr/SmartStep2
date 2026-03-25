@@ -81,6 +81,11 @@ export default function WhackAMoleGame() {
   const [shake, setShake] = useState(false);
   const [reward, setReward] = useState<{ xpGain: number; coinGain: number } | null>(null);
 
+  const [timeProgress, setTimeProgress] = useState(1);
+  const roundStartRef = useRef(Date.now());
+  const roundDurRef = useRef(MOLE_SHOW_BASE);
+  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const roundRef = useRef(0);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activeRef = useRef(true);
@@ -93,6 +98,7 @@ export default function WhackAMoleGame() {
   const endGame = useCallback(async (finalScore: number) => {
     activeRef.current = false;
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     setPhase("done");
     if (!activeChild) return;
     try {
@@ -119,6 +125,18 @@ export default function WhackAMoleGame() {
     setHitHole(null);
     setMissHole(null);
 
+    // Start countdown timer
+    const dur = showDuration(r);
+    roundStartRef.current = Date.now();
+    roundDurRef.current = dur;
+    setTimeProgress(1);
+    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    timerIntervalRef.current = setInterval(() => {
+      const elapsed = Date.now() - roundStartRef.current;
+      const remaining = Math.max(0, 1 - elapsed / roundDurRef.current);
+      setTimeProgress(remaining);
+    }, 50);
+
     // Place correct answer + decoys in random holes
     const correctHole = randInt(0, HOLES - 1);
     const otherHoles = shuffle(
@@ -133,9 +151,10 @@ export default function WhackAMoleGame() {
     setActiveMoles(newMoles);
 
     // Auto-hide after time
-    const dur = showDuration(r);
     timeoutRef.current = setTimeout(() => {
       if (!activeRef.current) return;
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      setTimeProgress(0);
       // Missed — lose a life
       const newLives = currentLives - 1;
       setLives(newLives);
@@ -165,6 +184,7 @@ export default function WhackAMoleGame() {
     return () => {
       activeRef.current = false;
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     };
   }, []);
 
@@ -177,6 +197,7 @@ export default function WhackAMoleGame() {
 
     if (isCorrect) {
       setHitHole(holeIdx);
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
       const newScore = score + 1;
       setScore(newScore);
       setActiveMoles(Array(HOLES).fill(null));
@@ -188,6 +209,7 @@ export default function WhackAMoleGame() {
       }
     } else {
       setMissHole(holeIdx);
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
       const newLives = lives - 1;
       setLives(newLives);
       setShake(true);
@@ -220,21 +242,21 @@ export default function WhackAMoleGame() {
           animate={{ y: 0, opacity: 1 }}
           className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 text-center"
         >
-          <div className="text-5xl sm:text-7xl mb-4">🔨</div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">הכה את השומה!</h1>
+          <div className="text-5xl sm:text-7xl mb-4">🎯</div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">תפוס ת'מילה!</h1>
           <p className="text-gray-500 text-sm sm:text-base mb-2">
-            שומות מציצות עם תשובות — הכו את השומה עם התשובה הנכונה!
+            תפסו את התשובה הנכונה לפני שהזמן נגמר!
           </p>
           <div className="text-sm text-gray-400 mb-6 space-y-1">
             <p>🎯 {TOTAL_ROUNDS} סיבובים</p>
             <p>❤️ 3 חיים</p>
-            <p>⚡ המשחק מתגבר בקושי!</p>
+            <p>⏱️ תפסו לפני שנגמר הזמן!</p>
           </div>
           <button
             onClick={startGame}
             className="px-8 py-3 bg-red-500 text-white text-lg rounded-2xl font-bold hover:bg-red-600 active:scale-95 transition-all shadow-lg"
           >
-            🔨 יאללה!
+            🎯 יאללה!
           </button>
         </motion.div>
       </div>
@@ -333,6 +355,22 @@ export default function WhackAMoleGame() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Countdown timer bar */}
+      {phase === "playing" && (
+        <div className="mb-3 sm:mb-4 px-1">
+          <div className="h-2.5 sm:h-3 bg-gray-200 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full rounded-full"
+              style={{
+                width: `${timeProgress * 100}%`,
+                backgroundColor: timeProgress > 0.5 ? "#22c55e" : timeProgress > 0.25 ? "#f59e0b" : "#ef4444",
+              }}
+              transition={{ duration: 0.05 }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Mole grid — 2×3 */}
       <div className="grid grid-cols-3 gap-3 sm:gap-4">

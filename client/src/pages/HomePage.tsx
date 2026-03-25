@@ -27,10 +27,10 @@ const GAMES = [
   },
   {
     id: "whack-a-mole",
-    name: "הכה את השומה",
+    name: "תפוס ת'מילה",
     icon: "🔨",
     color: "#ef4444",
-    description: "הכו את השומה עם התשובה הנכונה לפני שהיא נעלמת!",
+    description: "תפסו את התשובה הנכונה לפני שהזמן נגמר!",
     route: "/games/whack-a-mole",
   },
   {
