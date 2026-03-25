@@ -195,7 +195,7 @@ export default function SynonymInvadersGame() {
         if (w.state !== "falling") continue;
         const dx = Math.abs(b.x - w.x);
         const dy = Math.abs(b.y - w.y);
-        if (dx < 8 && dy < 4) {
+        if (dx < 10 && dy < 7) {
           w.state = "exploding";
           b.y = -100;
           if (w.isSynonym) {
