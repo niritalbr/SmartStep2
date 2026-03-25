@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../api";
-import { Category, CATEGORY_INFO, type CategorySummary } from "../types";
+import { Category, CATEGORY_INFO, SUB_PRACTICE_ITEMS, type CategorySummary } from "../types";
 
 /* ───── Practice categories ────────────────────────── */
 const PRACTICE_ITEMS = [
@@ -51,6 +51,8 @@ const GAMES = [
   },
 ];
 
+const EXPANDABLE_CATS = new Set([Category.numbers_in_shapes, Category.shapes]);
+
 type Tab = "games" | "practice" | "exam";
 
 export default function HomePage() {
@@ -58,6 +60,7 @@ export default function HomePage() {
   const navigate = useNavigate();
   const [summary, setSummary] = useState<Record<string, CategorySummary>>({});
   const [tab, setTab] = useState<Tab>("games");
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     api.getCategorySummary().then(setSummary).catch(() => {});
@@ -225,36 +228,107 @@ export default function HomePage() {
             {PRACTICE_ITEMS.map((cat, i) => {
               const info = CATEGORY_INFO[cat];
               const catSummary = summary[cat];
+              const isExpandable = EXPANDABLE_CATS.has(cat);
+              const isOpen = expanded[cat];
+              const subs = SUB_PRACTICE_ITEMS.filter((s) => s.category === cat);
+
               return (
-                <motion.button
-                  key={cat}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: i * 0.08, type: "spring", stiffness: 200 }}
-                  whileHover={{ scale: 1.05, y: -5 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => navigate(`/game/${cat}`)}
-                  className="game-card group relative overflow-hidden rounded-2xl p-4 sm:p-6 text-right transition-shadow hover:shadow-xl"
-                  style={{
-                    background: `linear-gradient(135deg, ${info.color}15, ${info.color}30)`,
-                    borderColor: info.color + "40",
-                  }}
-                >
-                  <div className="relative z-10">
-                    <div className="text-3xl sm:text-5xl mb-2 sm:mb-3">{info.icon}</div>
-                    <h3 className="text-sm sm:text-xl font-bold text-gray-800 mb-0.5 sm:mb-1">{info.name}</h3>
-                    <p className="text-xs sm:text-sm text-gray-500 mb-2 sm:mb-3 line-clamp-2">{info.description}</p>
-                    {catSummary && (
-                      <div className="text-xs text-gray-400 hidden sm:block">
-                        {catSummary.total} שאלות זמינות
+                <div key={cat} className={isOpen ? "col-span-2 md:col-span-3" : ""}>
+                  <motion.button
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: i * 0.08, type: "spring", stiffness: 200 }}
+                    whileHover={{ scale: 1.03, y: -4 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => {
+                      if (isExpandable) {
+                        setExpanded((prev) => ({ ...prev, [cat]: !prev[cat] }));
+                      } else {
+                        navigate(`/game/${cat}`);
+                      }
+                    }}
+                    className="w-full game-card group relative overflow-hidden rounded-2xl p-4 sm:p-6 text-right transition-shadow hover:shadow-xl"
+                    style={{
+                      background: `linear-gradient(135deg, ${info.color}15, ${info.color}30)`,
+                      borderColor: info.color + "40",
+                    }}
+                  >
+                    <div className="relative z-10">
+                      <div className="flex items-start justify-between">
+                        <div className="text-3xl sm:text-5xl mb-2 sm:mb-3">{info.icon}</div>
+                        {isExpandable && (
+                          <span className={`text-lg sm:text-xl text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}>▼</span>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <div
-                    className="absolute -left-6 -bottom-6 w-16 sm:w-24 h-16 sm:h-24 rounded-full opacity-10 group-hover:opacity-20 transition-opacity"
-                    style={{ backgroundColor: info.color }}
-                  />
-                </motion.button>
+                      <h3 className="text-sm sm:text-xl font-bold text-gray-800 mb-0.5 sm:mb-1">{info.name}</h3>
+                      <p className="text-xs sm:text-sm text-gray-500 mb-2 sm:mb-3 line-clamp-2">{info.description}</p>
+                      {isExpandable && (
+                        <div className="text-xs font-medium" style={{ color: info.color }}>
+                          {isOpen ? "לחצו לסגירה" : `לחצו לפתיחה • ${subs.length} תתי-נושאים`}
+                        </div>
+                      )}
+                      {!isExpandable && catSummary && (
+                        <div className="text-xs text-gray-400 hidden sm:block">
+                          {catSummary.total} שאלות זמינות
+                        </div>
+                      )}
+                    </div>
+                    <div
+                      className="absolute -left-6 -bottom-6 w-16 sm:w-24 h-16 sm:h-24 rounded-full opacity-10 group-hover:opacity-20 transition-opacity"
+                      style={{ backgroundColor: info.color }}
+                    />
+                  </motion.button>
+
+                  {/* Sub-practice items */}
+                  {isExpandable && isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      transition={{ duration: 0.25 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-2 sm:mt-3">
+                        {/* Mix all button */}
+                        <motion.button
+                          initial={{ y: 10, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          transition={{ delay: 0 }}
+                          whileHover={{ scale: 1.04, y: -3 }}
+                          whileTap={{ scale: 0.96 }}
+                          onClick={() => navigate(`/game/${cat}`)}
+                          className="rounded-xl p-3 sm:p-4 text-right transition-shadow hover:shadow-lg border-2 border-dashed"
+                          style={{
+                            background: `linear-gradient(135deg, ${info.color}08, ${info.color}18)`,
+                            borderColor: info.color + "50",
+                          }}
+                        >
+                          <div className="text-2xl sm:text-3xl mb-1">🎲</div>
+                          <h4 className="text-xs sm:text-sm font-bold text-gray-700">מיקס הכל</h4>
+                          <p className="text-xs text-gray-400 line-clamp-1">שאלות מכל הסוגים</p>
+                        </motion.button>
+                        {subs.map((sub, si) => (
+                          <motion.button
+                            key={sub.id}
+                            initial={{ y: 10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: (si + 1) * 0.06 }}
+                            whileHover={{ scale: 1.04, y: -3 }}
+                            whileTap={{ scale: 0.96 }}
+                            onClick={() => navigate(`/game/${cat}?sub=${sub.subType}`)}
+                            className="rounded-xl p-3 sm:p-4 text-right transition-shadow hover:shadow-lg"
+                            style={{
+                              background: `linear-gradient(135deg, ${sub.color}10, ${sub.color}25)`,
+                            }}
+                          >
+                            <div className="text-2xl sm:text-3xl mb-1">{sub.icon}</div>
+                            <h4 className="text-xs sm:text-sm font-bold text-gray-700">{sub.name}</h4>
+                            <p className="text-xs text-gray-400 line-clamp-2">{sub.description}</p>
+                          </motion.button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
               );
             })}
           </div>

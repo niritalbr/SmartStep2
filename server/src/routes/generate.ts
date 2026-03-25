@@ -130,12 +130,14 @@ generateRouter.post("/", async (req: AuthRequest, res: Response) => {
       difficulty: rawDiff,
       mixed,
       childId,
+      subType,
     } = req.body as {
       category?: string;
       count?: number;
       difficulty?: number;
       mixed?: boolean;
       childId?: string;
+      subType?: string;
     };
 
     const count = Math.min(Math.max(rawCount || 10, 1), 50);
@@ -195,7 +197,7 @@ generateRouter.post("/", async (req: AuthRequest, res: Response) => {
           return;
         }
         const extra = Math.min(newCount * 3, 50);
-        generated = generateQuestions(category as any, extra, difficulty);
+        generated = generateQuestions(category as any, extra, difficulty, subType);
       }
 
       // Cross-session dedup: prefer unseen question texts

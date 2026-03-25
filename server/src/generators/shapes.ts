@@ -208,8 +208,20 @@ export function generateShapesQuestion(difficulty: number): GeneratedQuestion {
   return pick(EMOJI_GENERATORS)(difficulty);
 }
 
-export function generateShapesBatch(count: number, difficulty?: number): GeneratedQuestion[] {
-  // 80% SVG visual patterns (more accurate to real test), 20% emoji-based
+export function generateShapesBatch(count: number, difficulty?: number, subType?: string): GeneratedQuestion[] {
+  // SubType filtering
+  if (subType === "matrices" || subType === "sequences" || subType === "analogies") {
+    return generateVisualPatterns(count, difficulty, subType);
+  }
+  if (subType === "emoji") {
+    const results: GeneratedQuestion[] = [];
+    for (let i = 0; i < count; i++) {
+      results.push(generateShapesQuestion(difficulty ?? randInt(1, 5)));
+    }
+    return results;
+  }
+
+  // Default: 80% SVG visual patterns, 20% emoji-based
   const visualCount = Math.max(1, Math.ceil(count * 0.8));
   const emojiCount = count - visualCount;
 

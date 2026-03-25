@@ -28,7 +28,7 @@ export const CATEGORY_INFO: Record<
     name: "מספרים בצורות",
     icon: "🔢",
     color: "#10b981",
-    description: "מציאת החוקיות במספרים בתוך צורות",
+    description: "מציאת החוקיות במספרים בתוך צורות — עיגולים, משולשים, מעוינים, חיצים ועוד",
   },
   [Category.math_problems]: {
     name: "בעיות חשבון",
@@ -40,7 +40,7 @@ export const CATEGORY_INFO: Record<
     name: "צורות ומטריצות",
     icon: "🔷",
     color: "#8b5cf6",
-    description: "זיהוי דפוסים בצורות ובמטריצות",
+    description: "מטריצות, סדרות חזותיות ואנלוגיות — חשיבה חזותית ופיגורטיבית",
   },
   [Category.vocabulary]: {
     name: "אוצר מילים",
@@ -49,6 +49,93 @@ export const CATEGORY_INFO: Record<
     description: "הכרת משמעות של מילים מתקדמות",
   },
 };
+
+export interface SubPracticeItem {
+  id: string;
+  category: Category;
+  subType: string;
+  name: string;
+  icon: string;
+  color: string;
+  description: string;
+}
+
+export const SUB_PRACTICE_ITEMS: SubPracticeItem[] = [
+  // מספרים בצורות sub-types
+  {
+    id: "nis_circles",
+    category: Category.numbers_in_shapes,
+    subType: "circles",
+    name: "עיגולים",
+    icon: "⭕",
+    color: "#10b981",
+    description: "סכום, מכפלה וממוצע במרכז עיגול",
+  },
+  {
+    id: "nis_triangles",
+    category: Category.numbers_in_shapes,
+    subType: "triangles",
+    name: "משולשים ופרפרים",
+    icon: "🔺",
+    color: "#059669",
+    description: "חוקיות בקודקודי משולש ובצורת פרפר",
+  },
+  {
+    id: "nis_arrows",
+    category: Category.numbers_in_shapes,
+    subType: "arrows",
+    name: "חיצים וחוקיות",
+    icon: "➡️",
+    color: "#047857",
+    description: "מכונת פונקציה — קלט → פלט, כפל, חיבור, ריבוע, דו-שלבי",
+  },
+  {
+    id: "nis_special",
+    category: Category.numbers_in_shapes,
+    subType: "special",
+    name: "צורות מיוחדות",
+    icon: "💎",
+    color: "#065f46",
+    description: "פלוס, מעוין, טבלה ושלוש צורות עם אותה חוקיות",
+  },
+  // צורות sub-types
+  {
+    id: "shp_matrices",
+    category: Category.shapes,
+    subType: "matrices",
+    name: "מטריצות",
+    icon: "🔲",
+    color: "#8b5cf6",
+    description: "טבלה 3×3 — מצאו את הצורה החסרה",
+  },
+  {
+    id: "shp_sequences",
+    category: Category.shapes,
+    subType: "sequences",
+    name: "סדרות חזותיות",
+    icon: "🔄",
+    color: "#7c3aed",
+    description: "מצאו את הצורה הבאה בסדרה",
+  },
+  {
+    id: "shp_analogies",
+    category: Category.shapes,
+    subType: "analogies",
+    name: "אנלוגיות",
+    icon: "🔀",
+    color: "#6d28d9",
+    description: "א:ב = ג:? — מצאו את הקשר",
+  },
+  {
+    id: "shp_emoji",
+    category: Category.shapes,
+    subType: "emoji",
+    name: "סדרות צורות",
+    icon: "🔷",
+    color: "#5b21b6",
+    description: "דפוסים חוזרים של צורות — ●○□△",
+  },
+];
 
 export interface User {
   id: string;

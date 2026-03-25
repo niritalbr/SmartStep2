@@ -484,12 +484,15 @@ const EXPLANATIONS: Record<string, string> = {
     "באנלוגיה, אותו שינוי שנעשה בין הצורה הראשונה לשנייה צריך להיעשות גם בין השלישית לרביעית.",
 };
 
-function generateOne(difficulty: number): GeneratedQuestion {
+function generateOne(difficulty: number, typeFilter?: "matrices" | "sequences" | "analogies"): GeneratedQuestion {
   // Type distribution based on difficulty
   const roll = Math.random();
   let type: "matrix" | "sequence" | "analogy";
 
-  if (difficulty <= 2) {
+  if (typeFilter) {
+    const MAP = { matrices: "matrix", sequences: "sequence", analogies: "analogy" } as const;
+    type = MAP[typeFilter];
+  } else if (difficulty <= 2) {
     // Easy: more sequences and analogies, fewer matrices
     type = roll < 0.45 ? "sequence" : roll < 0.75 ? "analogy" : "matrix";
   } else if (difficulty <= 3) {
@@ -542,10 +545,11 @@ function generateOne(difficulty: number): GeneratedQuestion {
 export function generateVisualPatterns(
   count: number,
   difficulty?: number,
+  typeFilter?: "matrices" | "sequences" | "analogies",
 ): GeneratedQuestion[] {
   const results: GeneratedQuestion[] = [];
   for (let i = 0; i < count; i++) {
-    results.push(generateOne(difficulty || randInt(1, 5)));
+    results.push(generateOne(difficulty || randInt(1, 5), typeFilter));
   }
   return results;
 }

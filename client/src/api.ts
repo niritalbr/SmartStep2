@@ -86,7 +86,7 @@ export const api = {
       "/questions/summary/categories"
     ),
 
-  generateQuestions: (params: { category?: string; count?: number; difficulty?: number; mixed?: boolean; childId?: string }) =>
+  generateQuestions: (params: { category?: string; count?: number; difficulty?: number; mixed?: boolean; childId?: string; subType?: string }) =>
     request<any[]>("/questions/generate", {
       method: "POST",
       body: JSON.stringify(params),

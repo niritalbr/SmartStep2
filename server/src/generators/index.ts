@@ -40,16 +40,17 @@ const ALL_CATEGORIES: Category[] = [
 export function generateQuestions(
   category: Category,
   count: number,
-  difficulty?: number
+  difficulty?: number,
+  subType?: string,
 ): GeneratedQuestion[] {
-  const gen = (c: Category, n: number, d?: number): GeneratedQuestion[] => {
+  const gen = (c: Category, n: number, d?: number, st?: string): GeneratedQuestion[] => {
     switch (c) {
       case "math_problems":
         return generateMathProblems(n, d);
       case "numbers_in_shapes":
-        return generateNumbersInShapesBatch(n, d);
+        return generateNumbersInShapesBatch(n, d, st);
       case "shapes":
-        return generateShapesBatch(n, d);
+        return generateShapesBatch(n, d, st);
       case "word_relations":
         return generateWordRelationsBatch(n, d);
       case "sentence_completion":
@@ -63,7 +64,7 @@ export function generateQuestions(
 
   // Generate extra and deduplicate by questionText
   const overgenerate = Math.min(count * 3, 50);
-  const raw = gen(category, overgenerate, difficulty);
+  const raw = gen(category, overgenerate, difficulty, subType);
   const seen = new Set<string>();
   const unique: GeneratedQuestion[] = [];
   for (const q of raw) {

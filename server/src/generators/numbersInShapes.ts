@@ -532,7 +532,14 @@ const GENERATORS: ((d: number) => PatternResult)[] = [
   twoStepFunction,
 ];
 
-export function generateNumbersInShapes(difficulty: number): GeneratedQuestion {
+const SUB_TYPE_MAP: Record<string, ((d: number) => PatternResult)[]> = {
+  circles: [circleSum, circleProduct, circleAverage],
+  triangles: [trianglePattern, butterflyPattern],
+  arrows: [arrowPairs, twoStepFunction, pairedMultiplier],
+  special: [threeShapesSameRule, crossPattern, diamondPattern, gridRowSum],
+};
+
+export function generateNumbersInShapes(difficulty: number, subType?: string): GeneratedQuestion {
   const gen = pick(GENERATORS);
   const result = gen(difficulty);
 
@@ -557,11 +564,11 @@ export function generateNumbersInShapes(difficulty: number): GeneratedQuestion {
   };
 }
 
-export function generateNumbersInShapesBatch(count: number, difficulty?: number): GeneratedQuestion[] {
+export function generateNumbersInShapesBatch(count: number, difficulty?: number, subType?: string): GeneratedQuestion[] {
   const results: GeneratedQuestion[] = [];
   for (let i = 0; i < count; i++) {
     const diff = difficulty ?? randInt(1, 5);
-    results.push(generateNumbersInShapes(diff));
+    results.push(generateNumbersInShapes(diff, subType));
   }
   return results;
 }

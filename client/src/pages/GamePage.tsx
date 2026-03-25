@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../api";
-import { Category, CATEGORY_INFO, type Question, type AnswerResult } from "../types";
+import { Category, CATEGORY_INFO, SUB_PRACTICE_ITEMS, type Question, type AnswerResult } from "../types";
 import { VisualQuestion, VisualOption } from "../components/VisualQuestion";
 
 type GameState = "loading" | "playing" | "feedback" | "summary";
@@ -39,6 +39,8 @@ function QuestionText({ text }: { text: string }) {
 
 export default function GamePage() {
   const { category } = useParams<{ category: string }>();
+  const [searchParams] = useSearchParams();
+  const subType = searchParams.get("sub") || undefined;
   const navigate = useNavigate();
   const { activeChild, updateActiveChild } = useAuth();
 
@@ -54,6 +56,7 @@ export default function GamePage() {
   const timerRef = useRef<ReturnType<typeof setInterval>>(undefined);
 
   const catInfo = CATEGORY_INFO[category as Category];
+  const subInfo = subType ? SUB_PRACTICE_ITEMS.find((s) => s.category === category && s.subType === subType) : undefined;
   const currentQuestion = questions[currentIndex];
 
   // Load questions (generated fresh each time) and create session
@@ -75,6 +78,7 @@ export default function GamePage() {
             count: TARGET,
             difficulty,
             childId: activeChild.id,
+            subType,
           }),
           api.createSession({
             childId: activeChild.id,
@@ -103,7 +107,7 @@ export default function GamePage() {
       }
     };
     load();
-  }, [activeChild, category]);
+  }, [activeChild, category, subType]);
 
   // Timer
   useEffect(() => {
@@ -317,7 +321,7 @@ export default function GamePage() {
           />
         </div>
         <div className="flex justify-between text-xs text-gray-400 mt-1">
-          <span>{catInfo?.name}</span>
+          <span>{subInfo?.name || catInfo?.name}</span>
           <span
             className={`font-mono ${timeLeft <= 10 ? "text-red-500 font-bold" : ""}`}
           >
